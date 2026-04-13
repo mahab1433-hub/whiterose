@@ -5,6 +5,8 @@ import { useCart } from '@/lib/store';
 import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MOCK_PRODUCTS } from '@/lib/mockData';
+import Image from 'next/image';
 
 const CartPage = () => {
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -55,18 +57,32 @@ const CartPage = () => {
 
             <div className="space-y-8">
               <AnimatePresence>
-                {items.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex flex-col sm:flex-row gap-6 border-b border-white/5 pb-8 group"
-                  >
-                    <div className="w-32 aspect-[3/4] bg-zinc-900 overflow-hidden">
-                      <img src={item.image_url || ''} alt={item.name} className="w-full h-full object-cover" />
-                    </div>
+                {items.map((item) => {
+                  const latestImage = MOCK_PRODUCTS.find(p => p.id === item.id)?.image_url || item.image_url;
+
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="flex flex-col sm:flex-row gap-6 border-b border-white/5 pb-8 group"
+                    >
+                      <div className="w-32 aspect-[3/4] bg-zinc-900 overflow-hidden relative border border-white/5">
+                        {latestImage ? (
+                          <Image 
+                            src={latestImage} 
+                            alt={item.name} 
+                            fill
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[8px] uppercase tracking-widest">
+                            No Photo
+                          </div>
+                        )}
+                      </div>
                     
                     <div className="flex-1 flex flex-col justify-between">
                       <div className="flex justify-between items-start">
@@ -103,10 +119,11 @@ const CartPage = () => {
                       </div>
                     </div>
                   </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                );
+              })}
+            </AnimatePresence>
           </div>
+        </div>
 
           {/* Summary */}
           <div className="w-full lg:w-96 space-y-8">

@@ -7,6 +7,8 @@ import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Lock, ChevronRight, CreditCard, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { MOCK_PRODUCTS } from '@/lib/mockData';
+import Image from 'next/image';
 
 const CheckoutContent = () => {
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -149,12 +151,33 @@ const CheckoutContent = () => {
             <div className="bg-zinc-950 border border-white/5 p-8 space-y-8 sticky top-32">
               <h3 className="text-xl font-serif uppercase tracking-widest">Order Summary</h3>
               <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-xs">
-                    <span className="truncate w-40">{item.name} x {item.quantity}</span>
-                    <span>₹{item.price * item.quantity}</span>
-                  </div>
-                ))}
+                {items.map((item) => {
+                  const latestImage = MOCK_PRODUCTS.find(p => p.id === item.id)?.image_url || item.image_url;
+                  
+                  return (
+                    <div key={item.id} className="flex justify-between items-center text-[10px] uppercase tracking-wider group">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="w-10 h-10 bg-zinc-900 border border-white/5 relative overflow-hidden flex-shrink-0">
+                          {latestImage ? (
+                            <Image 
+                              src={latestImage} 
+                              alt={item.name} 
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[6px]">
+                              NO PHOTO
+                            </div>
+                          )}
+                        </div>
+                        <span className="truncate w-32 group-hover:text-accent-pink transition-colors">{item.name}</span>
+                        <span className="text-zinc-500 font-sans">x{item.quantity}</span>
+                      </div>
+                      <span className="font-sans">₹{item.price * item.quantity}</span>
+                    </div>
+                  );
+                })}
                 <div className="border-t border-white/5 pt-4 flex justify-between font-serif text-lg text-accent-pink">
                   <span>Total</span>
                   <span>₹{total}</span>
