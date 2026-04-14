@@ -16,21 +16,14 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80"></div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 text-center flex flex-col items-center justify-center h-full pt-20">
+      <div className="container mx-auto px-6 relative z-10 text-center flex flex-col items-center justify-center h-full pt-20 lg:pt-40">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col items-center"
         >
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="text-[10px] sm:text-xs uppercase tracking-[0.8em] text-accent-pink font-sans font-medium mb-6 md:mb-8"
-          >
-            The Art of Elegance
-          </motion.p>
+
           
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -39,8 +32,11 @@ const Hero = () => {
             className="text-6xl md:text-8xl lg:text-9xl font-serif text-white uppercase leading-[0.9] tracking-tight drop-shadow-2xl"
           >
             White Rose <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-accent-pink to-gold drop-shadow-[0_0_15px_rgba(223,167,180,0.5)]">
-              Beauty
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-400 to-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+              Beauty Parlour
+            </span>
+            <span className="block text-2xl md:text-3xl lg:text-4xl font-light tracking-[0.4em] text-zinc-400 mt-6 md:mt-10 font-sans">
+              Cosmetics & Tattoo Studio
             </span>
           </motion.h1>
 
@@ -63,13 +59,13 @@ const Hero = () => {
               href="/shop"
               className="px-12 py-5 bg-white text-black text-xs font-bold uppercase tracking-[0.2em] relative group overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-accent-pink to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <span className="relative z-10 text-black group-hover:text-black transition-colors duration-500">Shop Collection</span>
             </Link>
             
             <Link
-              href="/#services"
-              className="px-12 py-5 border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-white/10 hover:border-accent-pink transition-all duration-500 bg-black/30 backdrop-blur-sm"
+              href="/services"
+              className="px-12 py-5 border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-white/10 hover:border-white transition-all duration-500 bg-black/30 backdrop-blur-sm"
             >
               Our Services
             </Link>
@@ -85,8 +81,8 @@ const Hero = () => {
             }}
             className="flex flex-col items-center space-y-3 mt-8 lg:mt-12"
           >
-            <span className="text-[9px] uppercase tracking-[0.4em] text-accent-pink">Scroll</span>
-            <div className="w-[1px] h-12 bg-gradient-to-b from-accent-pink to-transparent"></div>
+            <span className="text-[9px] uppercase tracking-[0.4em] text-zinc-500">Scroll</span>
+            <div className="w-[1px] h-12 bg-gradient-to-b from-zinc-500 to-transparent"></div>
           </motion.div>
 
         </motion.div>

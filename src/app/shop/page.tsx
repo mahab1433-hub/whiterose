@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/products/ProductCard';
-import { MOCK_PRODUCTS } from '@/lib/mockData';
+import { getProducts } from '@/lib/supabase';
+import { Product } from '@/types';
 import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,17 +14,29 @@ const ShopContent = () => {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'All';
   
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const data = await getProducts();
+      setProducts(data as Product[]);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
     setSelectedCategory(searchParams.get('category') || 'All');
   }, [searchParams]);
 
   const filteredProducts = useMemo(() => {
-    return MOCK_PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             product.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -33,7 +46,11 @@ const ShopContent = () => {
       if (sortBy === 'price-high') return b.price - a.price;
       return 0; // newest
     });
-  }, [selectedCategory, searchQuery, sortBy]);
+  }, [products, selectedCategory, searchQuery, sortBy]);
+
+  if (loading) {
+    return <div className="pt-40 text-center uppercase tracking-widest opacity-30">Loading Collection...</div>;
+  }
 
   return (
     <div className="pt-32 pb-24 min-h-screen bg-black">
@@ -67,7 +84,7 @@ const ShopContent = () => {
               placeholder="SEARCH PRODUCTS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b border-white/10 pl-8 py-2 text-[10px] tracking-widest focus:outline-none focus:border-accent-pink transition-colors"
+              className="w-full bg-transparent border-b border-white/10 pl-8 py-2 text-white text-[10px] tracking-widest focus:outline-none focus:border-accent-pink transition-colors"
             />
           </div>
 

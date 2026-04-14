@@ -16,8 +16,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "White Rose | Premium Beauty & Tattoo Studio",
-  description: "Experience the harmony of premium beauty care and world-class tattoo artistry at White Rose Beauty Parlour & Tattoo Studio.",
+  title: "White Rose Beauty Parlour Cosmetics & Tattoo Studio | Premium Luxury",
+  description: "Experience the harmony of premium beauty care and world-class tattoo artistry at White Rose Beauty Parlour Cosmetics & Tattoo Studio.",
   keywords: ["beauty", "tattoo", "makeup", "skincare", "haircare", "luxury beauty"],
 };
 

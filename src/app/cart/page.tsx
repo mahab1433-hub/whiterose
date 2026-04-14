@@ -5,7 +5,6 @@ import { useCart } from '@/lib/store';
 import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_PRODUCTS } from '@/lib/mockData';
 import Image from 'next/image';
 
 const CartPage = () => {
@@ -58,7 +57,7 @@ const CartPage = () => {
             <div className="space-y-8">
               <AnimatePresence>
                 {items.map((item) => {
-                  const latestImage = MOCK_PRODUCTS.find(p => p.id === item.id)?.image_url || item.image_url;
+                  const latestImage = item.image_url;
 
                   return (
                     <motion.div

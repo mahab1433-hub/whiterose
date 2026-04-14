@@ -26,7 +26,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
-    { name: 'Services', href: '/#services' },
+    { name: 'Services', href: '/services' },
     { name: 'About', href: '/#about' },
   ];
 
@@ -38,7 +38,7 @@ const Navbar = () => {
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 group relative cursor-pointer z-50">
-            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-[1.5px] border-white/40 group-hover:border-accent-pink transition-all duration-500 shadow-[0_0_10px_rgba(255,255,255,0.2)] group-hover:shadow-[0_0_20px_rgba(223,167,180,0.6)]">
+            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-[1.5px] border-white/40 group-hover:border-white transition-all duration-500 shadow-[0_0_10px_rgba(255,255,255,0.2)] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]">
               {/* Note: The invert(1) filter makes the black text/logo white, and the white background black to blend perfectly with the dark theme! */}
               <img
                 src="/logo.png"
@@ -49,9 +49,14 @@ const Navbar = () => {
                 }}
               />
             </div>
-            <span className="text-xl md:text-2xl font-serif tracking-[0.2em] uppercase font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:via-accent-pink group-hover:to-gold transition-all duration-500 hidden sm:block">
-              White Rose
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xl md:text-2xl font-serif tracking-[0.2em] uppercase font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:via-zinc-400 group-hover:to-white transition-all duration-500 leading-none">
+                White Rose
+              </span>
+              <span className="text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-zinc-400 font-light mt-1 whitespace-nowrap hidden sm:block">
+                Beauty Parlour Cosmetics & Tattoo Studio
+              </span>
+            </div>
           </Link>
 
           {/* Centered Desktop Nav */}
@@ -102,7 +107,7 @@ const Navbar = () => {
           >
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-8 right-8 text-white hover:text-accent-pink"
+              className="absolute top-8 right-8 text-white hover:text-zinc-400"
             >
               <X size={32} />
             </button>

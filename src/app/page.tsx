@@ -52,8 +52,8 @@ export default function Home() {
         <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div className="relative aspect-square">
             <img 
-              src="https://images.unsplash.com/photo-1621607512214-68297480165e?q=80&w=2070&auto=format&fit=crop" 
-              alt="Experience" 
+              src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop" 
+              alt="Luxury Beauty Experience" 
               className="object-cover w-full h-full"
             />
             <div className="absolute -bottom-10 -right-10 w-64 h-64 border border-white/10 hidden lg:block" />
@@ -65,7 +65,7 @@ export default function Home() {
               Eternal Beauty
             </h3>
             <p className="text-zinc-400 font-light leading-relaxed">
-              At White Rose, we blend the precision of professional tattoo artistry with the delicacy of high-end beauty treatments. Every service is a curated experience designed to celebrate your individuality.
+              At White Rose Beauty Parlour Cosmetics & Tattoo Studio, we blend the precision of professional tattoo artistry with the delicacy of high-end beauty treatments. Every service is a curated experience designed to celebrate your individuality.
             </p>
             <div className="grid grid-cols-2 gap-10 pt-8">
               <div>
@@ -92,7 +92,7 @@ export default function Home() {
             <input 
               type="email" 
               placeholder="YOUR EMAIL ADDRESS" 
-              className="flex-1 bg-transparent border-b border-white/20 py-4 text-xs tracking-widest focus:outline-none focus:border-white transition-colors"
+              className="flex-1 bg-transparent border-b border-white/20 py-4 text-white text-xs tracking-widest focus:outline-none focus:border-white transition-colors"
             />
             <button className="px-12 py-4 bg-white text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-colors">
               Subscribe

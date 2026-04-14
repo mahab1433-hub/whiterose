@@ -3,9 +3,9 @@
 @theme {
   --color-background: #000000;
   --color-foreground: #ffffff;
-  --color-accent-pink: #dfa7b4; /* Richer Rose Gold */
+  --color-accent-pink: #ffffff; /* Transitioned to White for B&W theme */
   --color-accent-grey: #f5f5f5;
-  --color-gold: #d4af37; /* Warmer Gold */
+  --color-gold: #cccccc; /* Transitioned to Silver for B&W theme */
   
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
@@ -14,9 +14,9 @@
 :root {
   --background: #000000;
   --foreground: #ffffff;
-  --accent-pink: #dfa7b4; /* Richer Rose Gold */
+  --accent-pink: #ffffff;
   --accent-grey: #f5f5f5;
-  --gold: #d4af37;
+  --gold: #cccccc;
 }
 
 

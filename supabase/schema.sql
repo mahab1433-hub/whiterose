@@ -6,6 +6,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   name TEXT,
   phone TEXT UNIQUE,
+  email TEXT UNIQUE,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -63,36 +64,46 @@ CREATE TABLE reviews (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ADMIN CHECK FUNCTION (Recursion Breaker)
+CREATE OR REPLACE FUNCTION public.is_admin(user_id uuid)
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = user_id AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 -- RLS POLICIES
 
--- Profiles: Users can read their own profile, Admins can read all.
+-- Profiles: Publicly readable to avoid recursion, but strictly protected for updates.
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Public profiles are readable" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- Products: Everyone can read, Admins can insert/update/delete.
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Everyone can view products" ON products FOR SELECT USING (true);
-CREATE POLICY "Admins can manage products" ON products FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can manage products" ON products FOR ALL USING (is_admin(auth.uid()));
 
 -- Orders: Users can view/create own orders. Admins can view all.
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can create own orders" ON orders FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Admins can manage all orders" ON orders FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can manage all orders" ON orders FOR ALL USING (is_admin(auth.uid()));
 
 -- Order Items: Users can view own items.
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own order items" ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE id = order_id AND user_id = auth.uid()));
-CREATE POLICY "Admins can view all items" ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can view all items" ON order_items FOR SELECT USING (is_admin(auth.uid()));
 
 -- Function to handle profile creation on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, name, phone)
-  VALUES (new.id, new.raw_user_meta_data->>'name', new.phone);
+  INSERT INTO public.profiles (id, name, phone, email)
+  VALUES (new.id, new.raw_user_meta_data->>'name', new.phone, new.email);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

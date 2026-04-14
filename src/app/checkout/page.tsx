@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Lock, ChevronRight, CreditCard, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { MOCK_PRODUCTS } from '@/lib/mockData';
 import Image from 'next/image';
 
 const CheckoutContent = () => {
@@ -75,7 +74,7 @@ const CheckoutContent = () => {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'White Rose Beauty',
+        name: 'White Rose Beauty Parlour Cosmetics & Tattoo Studio',
         description: 'Luxury Beauty Purchase',
         order_id: orderData.id,
         handler: async function (response: any) {
@@ -152,7 +151,7 @@ const CheckoutContent = () => {
               <h3 className="text-xl font-serif uppercase tracking-widest">Order Summary</h3>
               <div className="space-y-4">
                 {items.map((item) => {
-                  const latestImage = MOCK_PRODUCTS.find(p => p.id === item.id)?.image_url || item.image_url;
+                  const latestImage = item.image_url;
                   
                   return (
                     <div key={item.id} className="flex justify-between items-center text-[10px] uppercase tracking-wider group">

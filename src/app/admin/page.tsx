@@ -17,7 +17,7 @@ const AdminOverview = () => {
       <div className="space-y-12">
         <div className="space-y-2">
           <h1 className="text-4xl font-serif uppercase tracking-tight">Dashboard Overview</h1>
-          <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Real-time metrics for White Rose Beauty</p>
+          <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Real-time metrics for White Rose Beauty Parlour Cosmetics & Tattoo Studio</p>
         </div>
 
         {/* Stats Grid */}

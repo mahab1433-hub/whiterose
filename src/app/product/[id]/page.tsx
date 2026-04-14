@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { MOCK_PRODUCTS } from '@/lib/mockData';
+import { getProductById } from '@/lib/supabase';
+import { Product } from '@/types';
 import { ShoppingBag, Heart, Share2, ArrowLeft, ChevronRight, Star } from 'lucide-react';
 import { useCart } from '@/lib/store';
 import { toast } from 'react-hot-toast';
@@ -10,18 +11,39 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 const ProductDetails = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id as string;
   const router = useRouter();
   const addItem = useCart((state) => state.addItem);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
-  const product = MOCK_PRODUCTS.find((p) => p.id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setLoading(true);
+      const data = await getProductById(id);
+      setProduct(data as Product);
+      setLoading(false);
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="pt-40 text-center uppercase tracking-[0.2em] opacity-30 min-h-screen">
+        Retrieving Product Details...
+      </div>
+    );
+  }
 
   if (!product) {
     return (
-      <div className="pt-32 pb-24 text-center">
+      <div className="pt-32 pb-24 text-center min-h-screen">
         <h1 className="text-2xl font-serif uppercase">Product Not Found</h1>
-        <button onClick={() => router.back()} className="mt-8 text-accent-pink uppercase tracking-widest text-[10px] border-b border-accent-pink">
+        <p className="text-zinc-500 text-xs mt-4 uppercase tracking-widest">The requested product could not be found or does not exist.</p>
+        <button onClick={() => router.back()} className="mt-8 text-white uppercase tracking-widest text-[10px] border-b border-white">
           Go Back
         </button>
       </div>
@@ -137,7 +159,7 @@ const ProductDetails = () => {
               </div>
 
               <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-zinc-500 pt-6">
-                <span>SKU: WRB-{product.id.padStart(4, '0')}</span>
+                <span>SKU: WRB-{product.id.substring(0, 8).toUpperCase()}</span>
                 <button className="flex items-center space-x-2">
                   <Share2 size={12} />
                   <span>Share Product</span>
