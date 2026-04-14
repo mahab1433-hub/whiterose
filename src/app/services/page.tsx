@@ -64,7 +64,7 @@ const ServicesPage = () => {
     }
   ];
 
-  const containerVariants = {
+  const containerVariants: import('framer-motion').Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -74,7 +74,7 @@ const ServicesPage = () => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: import('framer-motion').Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
