@@ -6,8 +6,9 @@ import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, UserPlus, LogIn, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-const LoginPage = () => {
+const LoginContent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -168,6 +169,18 @@ const LoginPage = () => {
         </p>
       </motion.div>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-pulse text-[10px] uppercase tracking-[0.4em] text-zinc-500">Loading Secure Portal...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 };
 
