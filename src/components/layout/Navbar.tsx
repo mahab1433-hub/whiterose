@@ -6,22 +6,46 @@ import { useCart } from '@/lib/store';
 import { ShoppingBag, Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
   const { totalItems } = useCart();
   const pathname = usePathname();
+  const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
+    
+    const getUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserName(user.user_metadata?.full_name || 'User');
+      }
+    };
+
+    getUserData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserName(session.user.user_metadata?.full_name || 'User');
+      } else {
+        setUserName(null);
+      }
+    });
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -76,8 +100,16 @@ const Navbar = () => {
           </nav>
 
           <div className="flex items-center space-x-6">
-            <Link href="/login" className="text-zinc-400 hover:text-accent-pink transition-colors">
+            <Link 
+              href="/login" 
+              className={`flex items-center space-x-2 text-zinc-400 hover:text-accent-pink transition-all duration-300 ${userName ? 'border border-white/10 px-3 py-1.5 rounded-sm hover:border-accent-pink/50' : ''}`}
+            >
               <User size={18} />
+              {mounted && userName && (
+                <span className="text-[9px] uppercase tracking-[0.2em] font-bold">
+                  Hi, {userName.split(' ')[0]}
+                </span>
+              )}
             </Link>
 
             <Link href="/cart" className="relative text-white hover:text-accent-pink transition-colors">

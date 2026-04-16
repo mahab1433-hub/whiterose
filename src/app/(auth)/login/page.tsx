@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, UserPlus, LogIn, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Mail, Lock, ArrowRight, UserPlus, LogIn, Eye, EyeOff, KeyRound, User as UserIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 const LoginContent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +24,7 @@ const LoginContent = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || (!isForgotPassword && !password)) return toast.error('Please fill in all fields');
+    if (isSignUp && !fullName) return toast.error('Please enter your full name');
     
     setLoading(true);
     try {
@@ -39,6 +41,9 @@ const LoginContent = () => {
           email,
           password,
           options: {
+            data: {
+              full_name: fullName,
+            },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           }
         });
@@ -57,7 +62,11 @@ const LoginContent = () => {
         router.refresh();
       }
     } catch (error: any) {
-      toast.error(error.message || 'Authentication failed');
+      if (error.status === 429) {
+        toast.error('Too many attempts. Please wait a moment.');
+      } else {
+        toast.error(error.message || 'Authentication failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,6 +95,20 @@ const LoginContent = () => {
 
         <form onSubmit={handleAuth} className="space-y-6">
           <div className="space-y-4">
+            {isSignUp && (
+              <div className="relative group">
+                <UserIcon className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600 transition-colors group-focus-within:text-white" size={16} />
+                <input
+                  type="text"
+                  placeholder="FULL NAME"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-transparent border-b border-white/10 pl-8 py-4 text-white text-xs tracking-[0.2em] focus:outline-none focus:border-white transition-colors"
+                  required
+                />
+              </div>
+            )}
+            
             <div className="relative group">
               <Mail className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600 transition-colors group-focus-within:text-white" size={16} />
               <input
