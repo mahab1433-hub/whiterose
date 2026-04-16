@@ -167,7 +167,8 @@ const ServicesPage = () => {
             </p>
             <div className="pt-6">
               <Link
-                href="https://wa.me/919876543210"
+                href="https://wa.me/917708504700"
+                target="_blank"
                 className="inline-flex items-center justify-center space-x-3 px-10 py-5 bg-white text-black font-bold uppercase tracking-widest text-sm hover:bg-zinc-300 transition-colors"
               >
                 <Calendar size={18} />
@@ -186,8 +187,8 @@ const ServicesPage = () => {
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold">Location</h4>
               </div>
               <p className="text-xs text-zinc-400 font-light leading-relaxed tracking-wider">
-                123 Luxury Lane, Beauty Avenue,<br />
-                Fashion City, India
+                1801, Sevalpatti South Street, Madurai Road,<br />
+                Senthur Pipes Near, Rajapalayam - 626117
               </p>
             </div>
 
@@ -197,7 +198,7 @@ const ServicesPage = () => {
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold">Call Us</h4>
               </div>
               <p className="text-xs text-zinc-400 font-light leading-relaxed tracking-wider">
-                +91 98765 43210<br />
+                <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link><br />
                 Available 10:00 AM - 08:00 PM
               </p>
             </div>
@@ -208,8 +209,7 @@ const ServicesPage = () => {
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold">Email Us</h4>
               </div>
               <p className="text-xs text-zinc-400 font-light leading-relaxed tracking-wider">
-                hello@whiterosebeauty.com<br />
-                booking@whiterosebeauty.com
+                <Link href="mailto:gayathrirose1726@gmail.com" className="hover:text-white transition-colors">gayathrirose1726@gmail.com</Link>
               </p>
             </div>
           </div>

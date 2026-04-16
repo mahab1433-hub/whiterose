@@ -38,7 +38,7 @@ const Navbar = () => {
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 group relative cursor-pointer z-50">
-            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-[1.5px] border-white/40 group-hover:border-white transition-all duration-500 shadow-[0_0_10px_rgba(255,255,255,0.2)] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+            <div className="relative w-10 h-10 md:w-12 md:h-12 transition-all duration-500">
               {/* Note: The invert(1) filter makes the black text/logo white, and the white background black to blend perfectly with the dark theme! */}
               <img
                 src="/logo.png"

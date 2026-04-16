@@ -16,9 +16,8 @@ const Footer = () => {
             Premium beauty care and expert tattoo artistry. We believe in enhancing your natural beauty with a touch of elegance.
           </p>
           <div className="flex space-x-5">
-            <Link href="#" className="hover:text-white transition-colors"><Globe size={20} /></Link>
-            <Link href="#" className="hover:text-white transition-colors"><MessageCircle size={20} /></Link>
-            <Link href="#" className="hover:text-white transition-colors"><Share2 size={20} /></Link>
+            <Link href="https://www.instagram.com/white_roseparlour?igsh=MWpiYmYwMWk5cm45eQ==" target="_blank" className="hover:text-white transition-colors"><Share2 size={20} /></Link>
+            <Link href="https://wa.me/917708504700" target="_blank" className="hover:text-white transition-colors"><MessageCircle size={20} /></Link>
           </div>
         </div>
 
@@ -50,15 +49,15 @@ const Footer = () => {
           <ul className="space-y-4 text-sm text-gray-400">
             <li className="flex items-start space-x-3">
               <MapPin size={18} className="mt-0.5" />
-              <span>123 Luxury Lane, Beauty Avenue, Fashion City</span>
+              <span>1801, Sevalpatti South Street, Madurai Road, Senthur Pipes Near, Rajapalayam - 626117</span>
             </li>
             <li className="flex items-center space-x-3">
               <Phone size={18} className="text-white" />
-              <span>+91 98765 43210</span>
+              <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link>
             </li>
             <li className="flex items-center space-x-3">
               <Mail size={18} className="text-white" />
-              <span>hello@whiterosebeauty.com</span>
+              <Link href="mailto:gayathrirose1726@gmail.com" className="hover:text-white transition-colors">gayathrirose1726@gmail.com</Link>
             </li>
           </ul>
         </div>

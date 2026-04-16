@@ -7,7 +7,7 @@ export default function Home() {
   const featuredCategories = [
     { name: "Makeup", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=2087&auto=format&fit=crop", count: 12 },
     { name: "Skincare", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1974&auto=format&fit=crop", count: 8 },
-    { name: "Hair Care", image: "https://images.unsplash.com/photo-1527799822344-935df389063d?q=80&w=2072&auto=format&fit=crop", count: 15 },
+    { name: "Hair Care", image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop", count: 15 },
   ];
 
   return (
@@ -51,9 +51,9 @@ export default function Home() {
       <section className="py-24 border-y border-white/5">
         <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div className="relative aspect-square">
-            <img 
-              src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop" 
-              alt="Luxury Beauty Experience" 
+            <img
+              src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop"
+              alt="Luxury Beauty Experience"
               className="object-cover w-full h-full"
             />
             <div className="absolute -bottom-10 -right-10 w-64 h-64 border border-white/10 hidden lg:block" />
@@ -89,9 +89,9 @@ export default function Home() {
             Subscribe to receive exclusive offers, beauty tips, and early access to our new collections.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <input 
-              type="email" 
-              placeholder="YOUR EMAIL ADDRESS" 
+            <input
+              type="email"
+              placeholder="YOUR EMAIL ADDRESS"
               className="flex-1 bg-transparent border-b border-white/20 py-4 text-white text-xs tracking-widest focus:outline-none focus:border-white transition-colors"
             />
             <button className="px-12 py-4 bg-white text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-colors">

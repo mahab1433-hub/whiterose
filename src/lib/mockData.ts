@@ -2,7 +2,7 @@ import { Product } from "@/types";
 
 const DUMMY_MAKEUP_IMG = "https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=2080&auto=format&fit=crop";
 const DUMMY_SKINCARE_IMG = "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1974&auto=format&fit=crop";
-const DUMMY_HAIRCARE_IMG = "https://images.unsplash.com/photo-1631730359585-38a4935ccbbd?q=80&w=2070&auto=format&fit=crop";
+const DUMMY_HAIRCARE_IMG = "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop";
 const DUMMY_OTHER_IMG = "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=2042&auto=format&fit=crop";
 
 export const MOCK_PRODUCTS: Product[] = [
