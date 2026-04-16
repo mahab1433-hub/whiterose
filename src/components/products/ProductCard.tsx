@@ -45,10 +45,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10 flex justify-center">
           <button 
             onClick={handleAddToCart}
-            className="w-full bg-white text-black py-3 px-4 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest hover:bg-accent-pink transition-colors font-bold rounded-sm"
+            className="w-full bg-white !text-black py-3 px-4 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest hover:bg-accent-pink transition-colors font-bold rounded-sm"
           >
-            <ShoppingBag size={14} />
-            <span>Add to Cart</span>
+            <ShoppingBag size={14} className="!text-black" />
+            <span className="!text-black">Add to Cart</span>
           </button>
         </div>
       </div>

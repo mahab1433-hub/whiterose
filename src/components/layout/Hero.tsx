@@ -84,10 +84,10 @@ const Hero = () => {
           >
             <Link
               href="/shop"
-              className="w-full sm:w-auto px-10 py-4 sm:px-12 sm:py-5 bg-white text-black text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] relative group overflow-hidden text-center"
+              className="w-full sm:w-auto px-10 py-4 sm:px-12 sm:py-5 bg-white !text-black text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] relative group overflow-hidden text-center"
             >
               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <span className="relative z-10 text-black group-hover:text-black transition-colors duration-500">Shop Collection</span>
+              <span className="relative z-10 !text-black group-hover:text-black transition-colors duration-500">Shop Collection</span>
             </Link>
             
             <Link

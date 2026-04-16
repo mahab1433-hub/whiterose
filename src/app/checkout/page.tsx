@@ -27,11 +27,25 @@ const CheckoutContent = () => {
   });
 
   useEffect(() => {
-    setHasHydrated(true);
-  }, []);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to complete your checkout');
+        router.push('/login?redirect=/checkout');
+        return;
+      }
+      setHasHydrated(true);
+    };
+
+    checkAuth();
+  }, [supabase, router]);
 
   if (!hasHydrated) {
-    return <div className="pt-40 text-center uppercase tracking-widest opacity-30">Initializing Checkout...</div>;
+    return (
+      <div className="pt-40 text-center min-h-screen bg-black">
+        <div className="animate-pulse text-[10px] uppercase tracking-[0.4em] text-zinc-500">Checking Authentication...</div>
+      </div>
+    );
   }
 
   const loadRazorpay = () => {
@@ -140,9 +154,9 @@ const CheckoutContent = () => {
                   <textarea required placeholder="STREET ADDRESS" name="address" value={formData.address} onChange={handleChange} rows={2} className="w-full md:col-span-2 bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors resize-none" />
                 </div>
               </div>
-              <button disabled={loading || items.length === 0} className="w-full bg-white text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
-                <Lock size={16} />
-                <span>{loading ? 'Processing...' : `Pay ₹${total} Now`}</span>
+              <button disabled={loading || items.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
+                <Lock size={16} className="!text-black" />
+                <span className="!text-black">{loading ? 'Processing...' : `Pay ₹${total} Now`}</span>
               </button>
             </form>
           </div>

@@ -65,9 +65,9 @@ const OrdersPage = () => {
         </div>
         <Link 
           href="/shop" 
-          className="inline-block px-12 py-5 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all"
+          className="inline-block px-12 py-5 bg-white !text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all"
         >
-          Browse Products
+          <span className="!text-black">Browse Products</span>
         </Link>
       </div>
     );

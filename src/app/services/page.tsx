@@ -169,10 +169,10 @@ const ServicesPage = () => {
               <Link
                 href="https://wa.me/917708504700"
                 target="_blank"
-                className="inline-flex items-center justify-center space-x-3 px-10 py-5 bg-white text-black font-bold uppercase tracking-widest text-sm hover:bg-zinc-300 transition-colors"
+                className="inline-flex items-center justify-center space-x-3 px-10 py-5 bg-white !text-black font-bold uppercase tracking-widest text-sm hover:bg-zinc-300 transition-colors"
               >
-                <Calendar size={18} />
-                <span>Book Appointment</span>
+                <Calendar size={18} className="!text-black" />
+                <span className="!text-black">Book Appointment</span>
               </Link>
             </div>
           </div>

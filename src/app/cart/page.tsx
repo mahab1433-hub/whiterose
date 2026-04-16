@@ -35,9 +35,9 @@ const CartPage = () => {
         </div>
         <Link 
           href="/shop" 
-          className="inline-block px-12 py-5 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all"
+          className="inline-block px-12 py-5 bg-white !text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all"
         >
-          Start Shopping
+          <span className="!text-black">Start Shopping</span>
         </Link>
       </div>
     );
@@ -149,13 +149,21 @@ const CartPage = () => {
               </div>
 
               <div className="space-y-4">
-                <Link 
-                  href="/checkout"
-                  className="w-full bg-white text-black py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-3"
+                <button 
+                  onClick={async () => {
+                    const { data: { session } } = await createClient().auth.getSession();
+                    if (!session) {
+                      toast.error('Please sign in to proceed to checkout');
+                      router.push('/login?redirect=/checkout');
+                    } else {
+                      router.push('/checkout');
+                    }
+                  }}
+                  className="w-full bg-white !text-black py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-3"
                 >
-                  <span className="text-black">Proceed to Checkout</span>
-                  <ArrowRight size={14} className="text-black" />
-                </Link>
+                  <span className="!text-black">Proceed to Checkout</span>
+                  <ArrowRight size={14} className="!text-black" />
+                </button>
                 <Link 
                   href="/shop"
                   className="block text-center text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"

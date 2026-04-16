@@ -94,8 +94,8 @@ export default function Home() {
               placeholder="YOUR EMAIL ADDRESS"
               className="flex-1 bg-transparent border-b border-white/20 py-4 text-white text-xs tracking-widest focus:outline-none focus:border-white transition-colors"
             />
-            <button className="px-12 py-4 bg-white text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-colors">
-              Subscribe
+            <button className="px-12 py-4 bg-white !text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-colors">
+              <span className="!text-black">Subscribe</span>
             </button>
           </div>
         </div>
