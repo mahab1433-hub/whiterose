@@ -6,10 +6,14 @@ import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { createClient } from '@/lib/supabase';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const CartPage = () => {
   const [hasHydrated, setHasHydrated] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     setHasHydrated(true);
