@@ -7,7 +7,7 @@ const DUMMY_OTHER_IMG = "https://images.unsplash.com/photo-1608248597279-f99d160
 
 export const MOCK_PRODUCTS: Product[] = [
   // --- MAKEUP ---
-  { id: "M1", name: "BB Cream", description: "Allotment pending details", price: 899, category: "Makeup", image_url: "/products/bb-cream.jpeg", stock: 100, rating: 5.0, created_at: new Date().toISOString() },
+  { id: "M1", name: "BB Cream", description: "Allotment pending details", price: 299, category: "Makeup", image_url: "/products/bb-cream.jpeg", stock: 100, rating: 5.0, created_at: new Date().toISOString() },
   { id: "M2", name: "Stroke Cream", description: "Allotment pending details", price: 999, category: "Makeup", image_url: "/products/stroke-cream.jpeg", stock: 100, rating: 5.0, created_at: new Date().toISOString() },
   { id: "M3", name: "Primer", description: "Allotment pending details", price: 1099, category: "Makeup", image_url: "/products/primer.jpeg", stock: 100, rating: 5.0, created_at: new Date().toISOString() },
   { id: "M4", name: "Foundation", description: "Allotment pending details", price: 1299, category: "Makeup", image_url: "/products/foundation.jpeg", stock: 100, rating: 5.0, created_at: new Date().toISOString() },
