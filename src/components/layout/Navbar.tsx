@@ -13,9 +13,12 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { totalItems } = useCart();
   const pathname = usePathname();
   const supabase = createClient();
+
+  if (pathname?.startsWith('/admin')) return null;
 
   useEffect(() => {
     setMounted(true);
@@ -24,16 +27,21 @@ const Navbar = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserName(user.user_metadata?.full_name || 'User');
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        setIsAdmin(profile?.role === 'admin');
       }
     };
 
     getUserData();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUserName(session.user.user_metadata?.full_name || 'User');
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+        setIsAdmin(profile?.role === 'admin');
       } else {
         setUserName(null);
+        setIsAdmin(false);
       }
     });
 
@@ -97,6 +105,14 @@ const Navbar = () => {
                   }`} />
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`text-[10px] uppercase tracking-[0.3em] transition-all duration-300 relative group text-accent-pink font-bold border border-accent-pink/20 px-2 py-0.5 rounded-sm hover:bg-accent-pink hover:text-black`}
+              >
+                Admin
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center space-x-6">
@@ -158,10 +174,19 @@ const Navbar = () => {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm uppercase tracking-[0.3em] text-accent-pink flex items-center justify-center space-x-2"
+                className="text-sm uppercase tracking-[0.3em] text-zinc-400 flex items-center justify-center space-x-2"
               >
                 <span>Account</span>
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm uppercase tracking-[0.3em] text-accent-pink font-bold border border-accent-pink/20 px-4 py-2 rounded-sm"
+                >
+                  Admin Panel
+                </Link>
+              )}
             </nav>
           </motion.div>
         )}

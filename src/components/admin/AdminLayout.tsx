@@ -47,12 +47,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 href={item.href}
                 className={`flex items-center space-x-4 px-4 py-4 rounded-sm transition-all text-[10px] uppercase tracking-[0.2em] ${
                   isActive 
-                    ? 'bg-white text-black font-bold' 
+                    ? 'bg-white !text-black font-bold' 
                     : 'text-zinc-500 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                <Icon size={18} />
-                <span>{item.name}</span>
+                <Icon size={18} className={isActive ? '!text-black' : ''} />
+                <span className={isActive ? '!text-black' : ''}>{item.name}</span>
               </Link>
             );
           })}
