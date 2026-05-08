@@ -22,16 +22,20 @@ const Navbar = () => {
   useEffect(() => {
     setMounted(true);
     
-    const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserName(user.user_metadata?.full_name || 'User');
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        setIsAdmin(profile?.role === 'admin' || user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(user.email || ''));
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserName(session.user.user_metadata?.full_name || 'User');
+          const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+          setIsAdmin(profile?.role === 'admin' || session.user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(session.user.email || ''));
+        }
+      } catch (error) {
+        console.error('Navbar auth error:', error);
       }
     };
 
-    getUserData();
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {

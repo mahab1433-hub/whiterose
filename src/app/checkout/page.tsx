@@ -114,7 +114,7 @@ const CheckoutContent = () => {
             }));
             await supabase.from('order_items').insert(orderItems);
             clearCart();
-            router.push(`/orders?id=${order.id}`);
+            router.push(`/checkout/success?id=${order.id}`);
           }
         },
         prefill: {

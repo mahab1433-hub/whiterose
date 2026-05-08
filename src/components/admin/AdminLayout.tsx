@@ -62,7 +62,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         md:relative md:translate-x-0 md:sticky md:top-0 md:h-screen
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-6 md:p-8 border-b border-white/5 flex flex-col h-full md:h-auto">
+        <div className="p-6 md:p-8 border-b border-white/5 flex flex-col">
           {/* Mobile only: Close button inside sidebar */}
           <div className="md:hidden flex justify-end mb-4">
              <button onClick={() => setIsSidebarOpen(false)} className="text-zinc-500 hover:text-white">
