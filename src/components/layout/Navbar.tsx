@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/store';
-import { ShoppingBag, Menu, X, User } from 'lucide-react';
+import { ShoppingBag, Menu, X, User, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
@@ -17,8 +17,7 @@ const Navbar = () => {
   const { totalItems } = useCart();
   const pathname = usePathname();
   const supabase = createClient();
-
-  if (pathname?.startsWith('/admin')) return null;
+  const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
 
   useEffect(() => {
     setMounted(true);
@@ -28,7 +27,7 @@ const Navbar = () => {
       if (user) {
         setUserName(user.user_metadata?.full_name || 'User');
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        setIsAdmin(profile?.role === 'admin');
+        setIsAdmin(profile?.role === 'admin' || user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(user.email || ''));
       }
     };
 
@@ -38,7 +37,7 @@ const Navbar = () => {
       if (session?.user) {
         setUserName(session.user.user_metadata?.full_name || 'User');
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-        setIsAdmin(profile?.role === 'admin');
+        setIsAdmin(profile?.role === 'admin' || session.user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(session.user.email || ''));
       } else {
         setUserName(null);
         setIsAdmin(false);
@@ -61,6 +60,8 @@ const Navbar = () => {
     { name: 'Services', href: '/services' },
     { name: 'About', href: '/#about' },
   ];
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <header
@@ -108,9 +109,10 @@ const Navbar = () => {
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`text-[10px] uppercase tracking-[0.3em] transition-all duration-300 relative group text-accent-pink font-bold border border-accent-pink/20 px-2 py-0.5 rounded-sm hover:bg-accent-pink hover:text-black`}
+                className={`flex items-center space-x-2 text-[10px] uppercase tracking-[0.3em] transition-all duration-300 relative group text-accent-pink font-bold border border-accent-pink/20 px-2 py-0.5 rounded-sm hover:bg-accent-pink hover:text-black`}
               >
-                Admin
+                <ShieldCheck size={14} />
+                <span>Admin</span>
               </Link>
             )}
           </nav>
@@ -182,9 +184,10 @@ const Navbar = () => {
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm uppercase tracking-[0.3em] text-accent-pink font-bold border border-accent-pink/20 px-4 py-2 rounded-sm"
+                  className="text-sm uppercase tracking-[0.3em] text-accent-pink font-bold border border-accent-pink/20 px-4 py-2 rounded-sm flex items-center justify-center space-x-2"
                 >
-                  Admin Panel
+                  <ShieldCheck size={18} />
+                  <span>Admin Panel</span>
                 </Link>
               )}
             </nav>

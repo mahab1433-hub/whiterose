@@ -10,7 +10,8 @@ import {
   Users, 
   Settings, 
   LogOut,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck
 } from 'lucide-react';
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
@@ -32,8 +33,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] uppercase tracking-widest">Back to Store</span>
           </Link>
-          <div className="font-serif tracking-widest uppercase text-xl">
-            Admin <span className="text-accent-pink">Panel</span>
+          <div className="font-serif tracking-widest uppercase text-xl flex items-center space-x-2">
+            <ShieldCheck className="text-accent-pink" size={24} />
+            <span>Admin <span className="text-accent-pink">Panel</span></span>
           </div>
         </div>
 

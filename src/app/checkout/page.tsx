@@ -26,7 +26,6 @@ const CheckoutContent = () => {
     pincode: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -63,42 +62,6 @@ const CheckoutContent = () => {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return toast.error('Your cart is empty');
-    
-    if (paymentMethod === 'cod') {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        const { data: order, error } = await supabase.from('orders').insert({
-          user_id: user?.id,
-          total_amount: total,
-          status: 'pending',
-          payment_id: null,
-          payment_status: 'cod',
-          shipping_address: formData,
-        }).select().single();
-
-        if (error) throw error;
-
-        if (order) {
-          const orderItems = items.map(item => ({
-            order_id: order.id,
-            product_id: item.id,
-            quantity: item.quantity,
-            price: item.price
-          }));
-          await supabase.from('order_items').insert(orderItems);
-          clearCart();
-          toast.success('Order placed successfully via COD!');
-          router.push(`/orders?id=${order.id}`);
-        }
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to place order');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
     
     setLoading(true);
     const scriptLoaded = await loadRazorpay();
@@ -193,28 +156,9 @@ const CheckoutContent = () => {
                 </div>
               </div>
 
-              <div className="space-y-4 pt-8 border-t border-white/5">
-                <h2 className="text-xl font-serif uppercase tracking-widest border-b border-white/5 pb-4">Payment Method</h2>
-                <div className="flex gap-4">
-                  <button 
-                    type="button" 
-                    onClick={() => setPaymentMethod('online')}
-                    className={`flex-1 py-4 border text-[10px] uppercase tracking-widest transition-all ${paymentMethod === 'online' ? 'border-accent-pink bg-accent-pink/10 text-white' : 'border-white/10 text-zinc-500 hover:border-white/30'}`}
-                  >
-                    Pay Online
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => setPaymentMethod('cod')}
-                    className={`flex-1 py-4 border text-[10px] uppercase tracking-widest transition-all ${paymentMethod === 'cod' ? 'border-accent-pink bg-accent-pink/10 text-white' : 'border-white/10 text-zinc-500 hover:border-white/30'}`}
-                  >
-                    Cash on Delivery
-                  </button>
-                </div>
-              </div>
               <button disabled={loading || items.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
                 <Lock size={16} className="!text-black" />
-                <span className="!text-black">{loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order • ₹${total}` : `Pay ₹${total} Now`}</span>
+                <span className="!text-black">{loading ? 'Processing...' : `Pay ₹${total} Now`}</span>
               </button>
             </form>
           </div>
