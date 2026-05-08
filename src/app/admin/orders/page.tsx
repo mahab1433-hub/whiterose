@@ -151,18 +151,18 @@ export default function AdminOrders() {
         }
       `}} />
 
-      <div className="space-y-8 print-area">
+      <div className="space-y-6 md:space-y-8 print-area">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-serif uppercase tracking-tight">Order Management</h1>
+            <h1 className="text-2xl md:text-4xl font-serif uppercase tracking-tight">Order Management</h1>
             <p className="text-zinc-500 text-[10px] uppercase tracking-widest mt-2">Manage incoming orders, update status, and export data</p>
           </div>
-          <div className="flex gap-4 no-print">
-            <button onClick={exportToCSV} className="flex items-center space-x-2 px-4 py-2 border border-white/10 hover:border-accent-pink hover:text-accent-pink transition-colors text-[10px] uppercase tracking-widest">
+          <div className="flex gap-4 no-print w-full md:w-auto">
+            <button onClick={exportToCSV} className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 border border-white/10 hover:border-accent-pink hover:text-accent-pink transition-colors text-[10px] uppercase tracking-widest">
               <Download size={14} />
               <span>Export CSV</span>
             </button>
-            <button onClick={handlePrint} className="flex items-center space-x-2 px-4 py-2 border border-white/10 hover:border-accent-pink hover:text-accent-pink transition-colors text-[10px] uppercase tracking-widest">
+            <button onClick={handlePrint} className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 border border-white/10 hover:border-accent-pink hover:text-accent-pink transition-colors text-[10px] uppercase tracking-widest">
               <FileText size={14} />
               <span>Print PDF</span>
             </button>
@@ -170,7 +170,7 @@ export default function AdminOrders() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 no-print bg-zinc-950 p-6 border border-white/5">
+        <div className="flex flex-col md:flex-row gap-4 no-print bg-zinc-950 p-4 md:p-6 border border-white/5">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
             <input 
@@ -208,13 +208,13 @@ export default function AdminOrders() {
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-zinc-500 bg-black">
-                  <th className="p-6 font-normal w-32">Order ID</th>
-                  <th className="p-6 font-normal">Customer & Email</th>
-                  <th className="p-6 font-normal">Products</th>
-                  <th className="p-6 font-normal">Total</th>
-                  <th className="p-6 font-normal">Payment</th>
-                  <th className="p-6 font-normal">Status</th>
-                  <th className="p-6 font-normal text-right no-print">Actions</th>
+                  <th className="p-4 md:p-6 font-normal w-32">Order ID</th>
+                  <th className="p-4 md:p-6 font-normal">Customer & Email</th>
+                  <th className="p-4 md:p-6 font-normal">Products</th>
+                  <th className="p-4 md:p-6 font-normal">Total</th>
+                  <th className="p-4 md:p-6 font-normal">Payment</th>
+                  <th className="p-4 md:p-6 font-normal">Status</th>
+                  <th className="p-4 md:p-6 font-normal text-right no-print">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-xs">
@@ -223,16 +223,16 @@ export default function AdminOrders() {
                   
                   return (
                     <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                      <td className="p-6 text-zinc-400 font-mono text-[10px] uppercase tracking-wider" title={order.id}>
+                      <td className="p-4 md:p-6 text-zinc-400 font-mono text-[10px] uppercase tracking-wider" title={order.id}>
                         #{order.id.split('-')[0]}
                         <div className="text-[9px] text-zinc-600 mt-1">{new Date(order.created_at).toLocaleDateString()}</div>
                       </td>
-                      <td className="p-6">
+                      <td className="p-4 md:p-6">
                         <div className="font-medium uppercase tracking-wider text-[10px]">{order.shipping_address?.name || 'Unknown'}</div>
                         <div className="text-[9px] text-zinc-400 mt-1 tracking-wider lowercase">{order.shipping_address?.email}</div>
                         <div className="text-[10px] text-zinc-500 mt-1 tracking-wider">{order.shipping_address?.phone}</div>
                       </td>
-                      <td className="p-6">
+                      <td className="p-4 md:p-6">
                         <div className="max-w-xs space-y-1">
                           {order.order_items?.map((item: any, i: number) => (
                             <div key={i} className="text-[10px] uppercase tracking-widest text-zinc-400 truncate">
@@ -241,10 +241,10 @@ export default function AdminOrders() {
                           ))}
                         </div>
                       </td>
-                      <td className="p-6 font-mono text-[11px]">
+                      <td className="p-4 md:p-6 font-mono text-[11px]">
                         ₹{order.total_amount}
                       </td>
-                      <td className="p-6">
+                      <td className="p-4 md:p-6">
                         <span className={`px-3 py-1 rounded-sm text-[9px] uppercase tracking-widest border ${
                           isCOD ? 'border-orange-500/20 text-orange-400 bg-orange-500/10' : 
                           order.payment_status === 'paid' ? 'border-green-500/20 text-green-400 bg-green-500/10' : 
@@ -253,7 +253,7 @@ export default function AdminOrders() {
                           {isCOD ? 'COD' : order.payment_status}
                         </span>
                       </td>
-                      <td className="p-6">
+                      <td className="p-4 md:p-6">
                         <select 
                           value={order.status}
                           onChange={(e) => updateOrderStatus(order.id, e.target.value)}
@@ -270,7 +270,7 @@ export default function AdminOrders() {
                           <option value="cancelled" className="bg-zinc-900 text-white">CANCELLED</option>
                         </select>
                       </td>
-                      <td className="p-6 text-right no-print">
+                      <td className="p-4 md:p-6 text-right no-print">
                         <button 
                           onClick={() => deleteOrder(order.id)}
                           className="p-2 text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"

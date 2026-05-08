@@ -30,13 +30,13 @@ const AdminProducts = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-12">
+      <div className="space-y-8 md:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-serif uppercase tracking-tight">Products</h1>
+            <h1 className="text-2xl md:text-4xl font-serif uppercase tracking-tight">Products</h1>
             <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Manage your inventory and product details</p>
           </div>
-          <button className="px-8 py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all flex items-center space-x-3">
+          <button className="w-full md:w-auto px-8 py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-3">
             <Plus size={16} />
             <span>Add New Product</span>
           </button>
@@ -55,38 +55,38 @@ const AdminProducts = () => {
             />
           </div>
           <div className="flex gap-4">
-            <button className="px-6 py-2 border border-white/10 text-[10px] uppercase tracking-widest flex items-center space-x-2 text-zinc-500 hover:text-white transition-colors">
+            <button className="flex-1 md:flex-none px-6 py-2 border border-white/10 text-[10px] uppercase tracking-widest flex items-center justify-center space-x-2 text-zinc-500 hover:text-white transition-colors">
               <Filter size={14} />
               <span>Category</span>
             </button>
-            <button className="px-6 py-2 border border-white/10 text-[10px] uppercase tracking-widest flex items-center space-x-2 text-zinc-500 hover:text-white transition-colors">
+            <button className="flex-1 md:flex-none px-6 py-2 border border-white/10 text-[10px] uppercase tracking-widest flex items-center justify-center space-x-2 text-zinc-500 hover:text-white transition-colors">
               <span>Stock Status</span>
             </button>
           </div>
         </div>
 
         {/* Product Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border border-white/5 bg-zinc-950">
           {loading ? (
             <div className="py-20 text-center uppercase tracking-widest opacity-30 text-[10px]">
               Fetching Live Inventory...
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-white/10 text-[10px] uppercase tracking-widest text-zinc-500 font-normal">
-                  <th className="py-4 font-normal">Product info</th>
-                  <th className="py-4 font-normal">SKU</th>
-                  <th className="py-4 font-normal">Category</th>
-                  <th className="py-4 font-normal">Price</th>
-                  <th className="py-4 font-normal">Stock</th>
-                  <th className="py-4 font-normal text-right">Actions</th>
+                <tr className="border-b border-white/10 text-[10px] uppercase tracking-widest text-zinc-500 bg-black">
+                  <th className="p-6 font-normal">Product info</th>
+                  <th className="p-6 font-normal">SKU</th>
+                  <th className="p-6 font-normal">Category</th>
+                  <th className="p-6 font-normal">Price</th>
+                  <th className="p-6 font-normal">Stock</th>
+                  <th className="p-6 font-normal text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[10px] uppercase tracking-[0.2em]">
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                    <td className="py-6">
+                    <td className="p-6">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-16 bg-zinc-900 overflow-hidden flex-shrink-0 relative">
                           {product.image_url ? (
@@ -101,15 +101,15 @@ const AdminProducts = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-6 text-zinc-400">WRB-{product.id.substring(0, 8).toUpperCase()}</td>
-                    <td className="py-6">{product.category}</td>
-                    <td className="py-6 text-white font-serif">₹{product.price}</td>
-                    <td className="py-6">
-                      <span className={`px-3 py-1 rounded-full ${product.stock > 10 ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                    <td className="p-6 text-zinc-400">WRB-{product.id.substring(0, 8).toUpperCase()}</td>
+                    <td className="p-6">{product.category}</td>
+                    <td className="p-6 text-white font-serif">₹{product.price}</td>
+                    <td className="p-6">
+                      <span className={`px-3 py-1 rounded-sm border ${product.stock > 10 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                         {product.stock} Units
                       </span>
                     </td>
-                    <td className="py-6 text-right">
+                    <td className="p-6 text-right">
                       <div className="flex items-center justify-end space-x-4 text-zinc-500">
                         <button className="hover:text-white transition-colors">
                           <Edit2 size={16} />
