@@ -38,10 +38,14 @@ export async function POST(req: Request) {
     return NextResponse.json(order);
   } catch (error: any) {
     console.error('RAZORPAY_CRITICAL_ERROR:', error);
+    // Return the full error to the browser for debugging
     return NextResponse.json({ 
       error: error.message || 'Payment gateway error',
-      description: error.description || 'Check server logs for details',
-      metadata: error.metadata
+      fullError: error,
+      envCheck: {
+        hasKeyId: !!process.env.RAZORPAY_KEY_ID,
+        hasKeySecret: !!process.env.RAZORPAY_KEY_SECRET,
+      }
     }, { status: 500 });
   }
 }
