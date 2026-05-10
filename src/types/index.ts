@@ -24,8 +24,9 @@ export type Order = {
   total_amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_id: string | null;
-  payment_status: 'unpaid' | 'paid';
+  payment_status: 'unpaid' | 'paid' | 'cod';
   shipping_address: any;
+  order_items?: any[];
   created_at: string;
 };
 
