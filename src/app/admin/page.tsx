@@ -24,44 +24,41 @@ const AdminOverview = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch Orders for revenue and count
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+      setLoading(true);
+      
+      const [
+        { data: revenueData, error: revenueError },
+        { data: recentData, error: recentError },
+        { count: productsCount, error: productsError },
+        { count: usersCount, error: usersError }
+      ] = await Promise.all([
+        supabase.from('orders').select('total_amount, status'),
+        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user')
+      ]);
 
-      if (ordersError) throw ordersError;
+      if (revenueError) throw revenueError;
+      if (recentError) throw recentError;
+      if (productsError) throw productsError;
+      if (usersError) throw usersError;
 
       // Calculate Revenue (only from successful/processing orders)
-      const validOrders = orders.filter(o => o.status !== 'cancelled' && o.status !== 'pending');
-      const totalRevenue = validOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
-
-      // Fetch Products count
-      const { count: productsCount, error: productsError } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
-
-      if (productsError) throw productsError;
-
-      // Fetch Users count
-      const { count: usersCount, error: usersError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'user');
-
-      if (usersError) throw usersError;
+      const totalRevenue = revenueData
+        .filter(o => o.status !== 'cancelled' && o.status !== 'pending')
+        .reduce((sum, order) => sum + Number(order.total_amount), 0);
 
       setMetrics({
         revenue: totalRevenue,
-        orders: orders.length,
+        orders: revenueData.length,
         products: productsCount || 0,
         users: usersCount || 0,
       });
 
-      // Set Recent Orders (Top 5)
-      setRecentOrders(orders.slice(0, 5));
+      setRecentOrders(recentData || []);
 
     } catch (error: any) {
+      console.error('Dashboard Load Error:', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);

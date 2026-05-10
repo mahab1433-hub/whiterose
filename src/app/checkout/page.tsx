@@ -13,6 +13,7 @@ const CheckoutContent = () => {
   const [hasHydrated, setHasHydrated] = useState(false);
   const { items, totalPrice, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const total = totalPrice();
   const router = useRouter();
   const supabase = createClient();
@@ -26,6 +27,31 @@ const CheckoutContent = () => {
     pincode: '',
   });
 
+  const [shippingFee, setShippingFee] = useState(0);
+
+  useEffect(() => {
+    // Calculate shipping based on location and total
+    const subtotal = totalPrice();
+    if (subtotal === 0) {
+      setShippingFee(0);
+      return;
+    }
+
+    if (subtotal >= 999) {
+      setShippingFee(0);
+    } else if (formData.pincode === '626117' || formData.city.toLowerCase().includes('rajapalayam')) {
+      setShippingFee(0); // Local delivery free
+    } else if (formData.pincode.startsWith('6')) {
+      setShippingFee(50); // Tamil Nadu/South
+    } else if (formData.pincode.length >= 6) {
+      setShippingFee(100); // Rest of India
+    } else {
+      setShippingFee(0);
+    }
+  }, [formData.pincode, formData.city, totalPrice]);
+
+  const finalTotal = total + shippingFee;
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,6 +61,7 @@ const CheckoutContent = () => {
         router.push('/login?redirect=/checkout');
         return;
       }
+      setUser(session.user);
       setHasHydrated(true);
     };
 
@@ -77,7 +104,7 @@ const CheckoutContent = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: total,
+          amount: finalTotal,
           receipt: `rcpt_${Math.random().toString(36).substring(7)}`,
         }),
       });
@@ -93,28 +120,46 @@ const CheckoutContent = () => {
         description: 'Luxury Beauty Purchase',
         order_id: orderData.id,
         handler: async function (response: any) {
-          toast.success('Payment Successful!');
-          const { data: { user } } = await supabase.auth.getUser();
+          toast.success('Payment Received. Finalizing Order...');
           
-          const { data: order, error } = await supabase.from('orders').insert({
-            user_id: user?.id,
-            total_amount: total,
-            status: 'processing',
-            payment_id: response.razorpay_payment_id,
-            payment_status: 'paid',
-            shipping_address: formData,
-          }).select().single();
+          try {
+            const currentUserId = user?.id || (await supabase.auth.getUser()).data.user?.id;
 
-          if (!error && order) {
-            const orderItems = items.map(item => ({
-              order_id: order.id,
-              product_id: item.id,
-              quantity: item.quantity,
-              price: item.price
-            }));
-            await supabase.from('order_items').insert(orderItems);
-            clearCart();
-            router.push(`/checkout/success?id=${order.id}`);
+            if (!currentUserId) {
+              throw new Error('User not authenticated. Please contact support with payment ID: ' + response.razorpay_payment_id);
+            }
+
+            const { data: order, error: orderError } = await supabase.from('orders').insert({
+              user_id: currentUserId,
+              total_amount: finalTotal,
+              status: 'processing',
+              payment_id: response.razorpay_payment_id,
+              payment_status: 'paid',
+              shipping_address: { ...formData, shipping_fee: shippingFee },
+            }).select().single();
+
+            if (orderError) throw orderError;
+
+            if (order) {
+              const orderItems = items.map(item => ({
+                order_id: order.id,
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price
+              }));
+
+              const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+              if (itemsError) {
+                console.error('Order items insertion error:', itemsError);
+                // We still have the order, so we can proceed but notify admin
+              }
+
+              clearCart();
+              router.push(`/checkout/success?id=${order.id}`);
+            }
+          } catch (err: any) {
+            console.error('CRITICAL ORDER INSERTION ERROR:', err);
+            toast.error('Order saving failed, but payment was successful. Please contact support with Payment ID: ' + response.razorpay_payment_id);
           }
         },
         prefill: {
@@ -151,15 +196,22 @@ const CheckoutContent = () => {
                   <input required placeholder="FULL NAME" name="name" value={formData.name} onChange={handleChange} className="w-full bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors" />
                   <input required placeholder="EMAIL" type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors" />
                   <input required placeholder="PHONE" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors" />
+                  <input required placeholder="CITY" name="city" value={formData.city} onChange={handleChange} className="w-full bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors" />
                   <input required placeholder="PINCODE" name="pincode" value={formData.pincode} onChange={handleChange} className="w-full bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors" />
                   <textarea required placeholder="STREET ADDRESS" name="address" value={formData.address} onChange={handleChange} rows={2} className="w-full md:col-span-2 bg-transparent border-b border-white/10 py-3 text-sm focus:outline-none focus:border-white transition-colors resize-none" />
                 </div>
               </div>
 
-              <button disabled={loading || items.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
-                <Lock size={16} className="!text-black" />
-                <span className="!text-black">{loading ? 'Processing...' : `Pay ₹${total} Now`}</span>
-              </button>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-zinc-500 text-[10px] uppercase tracking-widest">
+                  <ShieldCheck size={14} />
+                  <span>Secure Payment via Razorpay</span>
+                </div>
+                <button disabled={loading || items.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
+                  <Lock size={16} className="!text-black" />
+                  <span className="!text-black">{loading ? 'Processing...' : `Pay ₹${finalTotal} Now`}</span>
+                </button>
+              </div>
             </form>
           </div>
           <div className="w-full lg:w-96">
@@ -193,9 +245,19 @@ const CheckoutContent = () => {
                     </div>
                   );
                 })}
-                <div className="border-t border-white/5 pt-4 flex justify-between font-serif text-lg text-accent-pink">
-                  <span>Total</span>
-                  <span>₹{total}</span>
+                <div className="border-t border-white/5 pt-4 space-y-2">
+                  <div className="flex justify-between text-[10px] uppercase tracking-wider text-zinc-500">
+                    <span>Subtotal</span>
+                    <span className="font-sans">₹{total}</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] uppercase tracking-wider text-zinc-500">
+                    <span>Shipping</span>
+                    <span className="font-sans text-white">{shippingFee === 0 ? 'FREE' : `₹${shippingFee}`}</span>
+                  </div>
+                  <div className="flex justify-between font-serif text-xl text-accent-pink pt-2 border-t border-white/5">
+                    <span>Total</span>
+                    <span>₹{finalTotal}</span>
+                  </div>
                 </div>
               </div>
             </div>

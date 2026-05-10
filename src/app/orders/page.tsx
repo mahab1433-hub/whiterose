@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Order } from '@/types';
 import { ShoppingBag, ChevronRight, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -10,28 +10,63 @@ import Link from 'next/link';
 const OrdersPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  // const supabase = createClient(); // Use exported instance instead
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchOrders = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        if (!user) {
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            order_items (
+              quantity,
+              products (
+                name,
+                images
+              )
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (isMounted) {
+          if (!error) setOrders(data || []);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Order fetch error:', err);
+        if (isMounted) setLoading(false);
       }
-
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (!error) setOrders(data);
-      setLoading(false);
     };
 
     fetchOrders();
-  }, [supabase]);
+
+    // Listen for auth changes to re-fetch if needed
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchOrders();
+      } else {
+        setOrders([]);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -110,15 +145,23 @@ const OrdersPage = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex -space-x-4">
-                  {/* Mock item dots/images for visual */}
-                  {[1, 2].map((i) => (
-                    <div key={i} className="w-16 h-20 bg-zinc-900 border border-black overflow-hidden relative shadow-xl">
-                      <div className="absolute inset-0 bg-accent-pink/5" />
+                  {order.order_items?.slice(0, 3).map((item: any, i: number) => {
+                    const imageUrl = item.products?.images?.[0] || '';
+                    return (
+                      <div key={i} className="w-16 h-20 bg-zinc-900 border border-black overflow-hidden relative shadow-xl">
+                        {imageUrl ? (
+                          <img src={imageUrl} alt={item.products?.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 bg-accent-pink/5" />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {order.order_items && order.order_items.length > 3 && (
+                    <div className="w-16 h-20 bg-black/80 border border-white/10 flex items-center justify-center text-[10px] font-bold z-10 relative shadow-xl">
+                      +{order.order_items.length - 3}
                     </div>
-                  ))}
-                  <div className="w-16 h-20 bg-black/80 border border-white/10 flex items-center justify-center text-[10px] font-bold z-10">
-                    +1
-                  </div>
+                  )}
                 </div>
                 
                 <Link 

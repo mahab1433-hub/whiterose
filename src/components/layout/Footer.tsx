@@ -44,9 +44,9 @@ const Footer = () => {
           <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Support</h4>
           <ul className="space-y-4 text-sm text-gray-400">
             <li><Link href="/orders" className="hover:text-white transition-colors">Track Order</Link></li>
-            <li><Link href="#" className="hover:text-white transition-colors">Shipping Policy</Link></li>
-            <li><Link href="#" className="hover:text-white transition-colors">Returns & Exchanges</Link></li>
-            <li><Link href="#" className="hover:text-white transition-colors">FAQs</Link></li>
+            <li><Link href="/shipping-policy" className="hover:text-white transition-colors">Shipping Policy</Link></li>
+            <li><Link href="/returns-exchanges" className="hover:text-white transition-colors">Returns & Exchanges</Link></li>
+            <li><Link href="/faqs" className="hover:text-white transition-colors">FAQs</Link></li>
           </ul>
         </div>
 
@@ -73,8 +73,8 @@ const Footer = () => {
       <div className="container mx-auto px-6 mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 text-[10px] uppercase tracking-widest text-gray-500">
         <p>© 2026 White Rose Beauty Parlour Cosmetics & Tattoo Studio. All rights reserved.</p>
         <div className="flex space-x-8">
-          <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-          <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
+          <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
         </div>
       </div>
     </footer>
