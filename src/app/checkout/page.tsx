@@ -145,6 +145,24 @@ const CheckoutContent = () => {
               }
 
               clearCart();
+              
+              // Send confirmation email
+              try {
+                await fetch('/api/email', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email: formData.email,
+                    orderId: order.id,
+                    items: items,
+                    total: finalTotal,
+                    shippingAddress: formData,
+                  }),
+                });
+              } catch (emailError) {
+                console.error('Failed to send confirmation email:', emailError);
+              }
+
               router.refresh();
               router.push(`/checkout/success?id=${order.id}`);
             }
