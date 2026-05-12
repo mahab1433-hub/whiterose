@@ -2,8 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/types';
-import { ShoppingBag } from 'lucide-react';
-import { useCart } from '@/lib/store';
+import { ShoppingBag, Heart } from 'lucide-react';
+import { useCart, useWishlist } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 
 interface ProductCardProps {
@@ -12,11 +13,39 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isFavorite = isInWishlist(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addItem(product);
     toast.success(`${product.name} added to cart`);
+  };
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return toast.error('Please login to use wishlist');
+    }
+
+    toggleWishlist(product.id);
+
+    if (!isFavorite) {
+      const { error } = await supabase
+        .from('wishlist')
+        .upsert({ user_id: session.user.id, product_id: product.id }, { onConflict: 'user_id,product_id' });
+      if (!error) toast.success('Added to wishlist');
+    } else {
+      const { error } = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('product_id', product.id);
+      if (!error) toast.success('Removed from wishlist');
+    }
   };
 
   return (
@@ -41,6 +70,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
         
         {/* Luxury gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Wishlist Button */}
+        <button
+          onClick={handleToggleWishlist}
+          className={`absolute top-4 right-4 z-30 p-2 rounded-full transition-all duration-300 ${
+            isFavorite ? 'bg-accent-pink text-black' : 'bg-black/40 text-white hover:bg-white hover:text-black'
+          }`}
+        >
+          <Heart size={14} fill={isFavorite ? 'currentColor' : 'none'} />
+        </button>
 
         <div className="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-10 flex justify-center">
           <button 

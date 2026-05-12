@@ -209,7 +209,8 @@ export default function AdminOrders() {
               <thead>
                 <tr className="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-zinc-500 bg-black">
                   <th className="p-4 md:p-6 font-normal w-32">Order ID</th>
-                  <th className="p-4 md:p-6 font-normal">Customer & Email</th>
+                  <th className="p-4 md:p-6 font-normal">Customer</th>
+                  <th className="p-4 md:p-6 font-normal">Shipping Address</th>
                   <th className="p-4 md:p-6 font-normal">Products</th>
                   <th className="p-4 md:p-6 font-normal">Total</th>
                   <th className="p-4 md:p-6 font-normal">Payment</th>
@@ -229,8 +230,18 @@ export default function AdminOrders() {
                       </td>
                       <td className="p-4 md:p-6">
                         <div className="font-medium uppercase tracking-wider text-[10px]">{order.shipping_address?.name || 'Unknown'}</div>
-                        <div className="text-[9px] text-zinc-400 mt-1 tracking-wider lowercase">{order.shipping_address?.email}</div>
                         <div className="text-[10px] text-zinc-500 mt-1 tracking-wider">{order.shipping_address?.phone}</div>
+                        <div className="text-[9px] text-zinc-600 mt-1 tracking-wider lowercase">{order.shipping_address?.email}</div>
+                      </td>
+                      <td className="p-4 md:p-6">
+                        <div className="max-w-[200px]">
+                          <p className="text-[10px] text-zinc-400 uppercase tracking-widest leading-relaxed">
+                            {order.shipping_address?.address}
+                          </p>
+                          <p className="text-[9px] text-zinc-500 mt-1 font-bold tracking-[0.1em] uppercase">
+                            {order.shipping_address?.city} - {order.shipping_address?.pincode}
+                          </p>
+                        </div>
                       </td>
                       <td className="p-4 md:p-6">
                         <div className="max-w-xs space-y-1">

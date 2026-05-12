@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, UserPlus, LogIn, Eye, EyeOff, KeyRound, User as UserIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { useCart } from '@/lib/store';
 
 const LoginContent = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const LoginContent = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const { clearCart } = useCart();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/orders';
@@ -30,7 +31,7 @@ const LoginContent = () => {
     try {
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/update-password`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
         });
         if (error) throw error;
         toast.success('Password reset link sent to your email!');
@@ -50,6 +51,7 @@ const LoginContent = () => {
         });
         if (error) throw error;
         toast.success('Account created successfully!');
+        clearCart();
         router.push(redirectTo);
         router.refresh();
       } else {
@@ -59,6 +61,7 @@ const LoginContent = () => {
         });
         if (error) throw error;
         toast.success('Successfully signed in!');
+        clearCart();
         router.push(redirectTo);
         router.refresh();
       }

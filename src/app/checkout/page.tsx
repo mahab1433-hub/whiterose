@@ -155,6 +155,7 @@ const CheckoutContent = () => {
               }
 
               clearCart();
+              router.refresh();
               router.push(`/checkout/success?id=${order.id}`);
             }
           } catch (err: any) {

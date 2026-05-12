@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "react-hot-toast";
+import SyncManager from "@/components/auth/SyncManager";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -80,6 +81,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <SyncManager />
         <Toaster position="bottom-right" />
       </body>
     </html>

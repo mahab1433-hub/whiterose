@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/store';
-import { ShoppingBag, Menu, X, User, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Menu, X, User, ShieldCheck, LogOut, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,9 +16,9 @@ const Navbar = () => {
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { totalItems } = useCart();
+  const { totalItems, clearCart } = useCart();
   const pathname = usePathname();
-  const supabase = createClient();
+  const router = useRouter();
   const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
 
   useEffect(() => {
@@ -61,6 +63,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
+    { name: 'Wishlist', href: '/wishlist' },
     { name: 'Services', href: '/services' },
     { name: 'About', href: '/#about' },
   ];
@@ -77,13 +80,12 @@ const Navbar = () => {
           <Link href="/" className="flex items-center space-x-3 group relative cursor-pointer z-50">
             <div className="relative w-10 h-10 md:w-12 md:h-12 transition-all duration-500">
               {/* Note: The invert(1) filter makes the black text/logo white, and the white background black to blend perfectly with the dark theme! */}
-              <img
+              <Image
                 src="/logo.png"
                 alt="White Rose Logo"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
+                fill
+                className="object-cover"
+                priority
               />
             </div>
             <div className="flex flex-col">
@@ -122,17 +124,34 @@ const Navbar = () => {
           </nav>
 
           <div className="flex items-center space-x-6">
-            <Link 
-              href="/login" 
-              className={`flex items-center space-x-2 text-zinc-400 hover:text-accent-pink transition-all duration-300 ${userName ? 'border border-white/10 px-3 py-1.5 rounded-sm hover:border-accent-pink/50' : ''}`}
-            >
-              <User size={18} />
-              {mounted && userName && (
-                <span className="text-[9px] uppercase tracking-[0.2em] font-bold">
-                  Hi, {userName.split(' ')[0]}
-                </span>
+            <div className="flex items-center space-x-4">
+              <Link 
+                href="/login" 
+                className={`flex items-center space-x-2 text-zinc-400 hover:text-accent-pink transition-all duration-300 ${userName ? 'border border-white/10 px-3 py-1.5 rounded-sm hover:border-accent-pink/50' : ''}`}
+              >
+                <User size={18} />
+                {mounted && userName && (
+                  <span className="text-[9px] uppercase tracking-[0.2em] font-bold">
+                    Hi, {userName.split(' ')[0]}
+                  </span>
+                )}
+              </Link>
+              {userName && (
+                <button 
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    clearCart();
+                    toast.success('Signed out');
+                    router.refresh();
+                    router.push('/');
+                  }}
+                  className="text-zinc-500 hover:text-white transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut size={16} />
+                </button>
               )}
-            </Link>
+            </div>
 
             <Link href="/cart" className="relative text-white hover:text-accent-pink transition-colors">
               <ShoppingBag size={18} />

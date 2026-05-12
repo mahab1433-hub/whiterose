@@ -52,6 +52,22 @@ const OrdersPage = () => {
 
     fetchOrders();
 
+    // Real-time subscription for this user's orders
+    const channel = supabase
+      .channel(`user_orders_${Math.random()}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders'
+        },
+        () => {
+          fetchOrders();
+        }
+      )
+      .subscribe();
+
     // Listen for auth changes to re-fetch if needed
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -65,6 +81,7 @@ const OrdersPage = () => {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -142,6 +159,27 @@ const OrdersPage = () => {
                   <span className="text-[10px] uppercase tracking-widest font-bold">{order.status}</span>
                 </div>
               </div>
+
+              {/* Shipping Address Summary */}
+              {order.shipping_address && (
+                <div className="bg-white/[0.02] border border-white/5 p-6 space-y-3">
+                  <div className="flex items-center space-x-2 text-[9px] uppercase tracking-[0.2em] text-accent-pink">
+                    <Truck size={12} />
+                    <span>Shipping To</span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-bold tracking-wider uppercase text-zinc-200">
+                      {(order.shipping_address as any).name}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 leading-relaxed max-w-md">
+                      {(order.shipping_address as any).address}, {(order.shipping_address as any).city} - {(order.shipping_address as any).pincode}
+                    </p>
+                    <p className="text-[9px] text-zinc-600 tracking-widest pt-1">
+                      CONTACT: {(order.shipping_address as any).phone}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex -space-x-4">

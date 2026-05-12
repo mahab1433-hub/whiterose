@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, Save } from 'lucide-react';
@@ -12,7 +12,6 @@ const UpdatePasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
   const router = useRouter();
 
   const handleUpdatePassword = async (e: React.FormEvent) => {

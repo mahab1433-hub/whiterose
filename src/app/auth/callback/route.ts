@@ -36,7 +36,9 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
+  const next = requestUrl.searchParams.get('next') || '/';
+
   // URL to redirect to after sign in process completes
   const origin = requestUrl.origin;
-  return NextResponse.redirect(`${origin}/`);
+  return NextResponse.redirect(`${origin}${next}`);
 }
