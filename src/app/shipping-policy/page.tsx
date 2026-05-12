@@ -10,8 +10,8 @@ export const metadata = {
 const shippingFeatures = [
   {
     icon: <Truck className="text-accent-pink" size={24} />,
-    title: "Free Shipping",
-    desc: "On all orders above ₹999 across India."
+    title: "Standard Shipping",
+    desc: "Flat ₹80 shipping charge on all orders across India."
   },
   {
     icon: <Clock className="text-accent-pink" size={24} />,
@@ -96,19 +96,9 @@ export default function ShippingPolicy() {
                     </thead>
                     <tbody className="text-[11px] text-zinc-500">
                       <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-white uppercase">Rajapalayam</td>
-                        <td className="p-4">Local Courier</td>
-                        <td className="p-4">24-48 Hours</td>
-                      </tr>
-                      <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-white uppercase">Tamil Nadu</td>
-                        <td className="p-4">Express</td>
-                        <td className="p-4">2-4 Business Days</td>
-                      </tr>
-                      <tr className="hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-white uppercase">Rest of India</td>
-                        <td className="p-4">Standard</td>
-                        <td className="p-4">5-7 Business Days</td>
+                         <td className="p-4 text-white uppercase">All India</td>
+                        <td className="p-4">Standard Shipping</td>
+                        <td className="p-4">₹80 Flat Rate</td>
                       </tr>
                     </tbody>
                   </table>

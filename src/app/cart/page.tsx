@@ -140,7 +140,7 @@ const CartPage = () => {
                 </div>
                 <div className="flex justify-between text-zinc-500">
                   <span>Shipping</span>
-                  <span>FREE</span>
+                  <span>₹80</span>
                 </div>
                 <div className="flex justify-between text-zinc-500 border-b border-white/5 pb-4">
                   <span>Estimated Tax</span>
@@ -148,7 +148,7 @@ const CartPage = () => {
                 </div>
                 <div className="flex justify-between text-lg font-light text-white pt-2">
                   <span>Total</span>
-                  <span>₹{total}</span>
+                  <span>₹{total + 80}</span>
                 </div>
               </div>
 

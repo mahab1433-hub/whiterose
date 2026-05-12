@@ -30,25 +30,15 @@ const CheckoutContent = () => {
   const [shippingFee, setShippingFee] = useState(0);
 
   useEffect(() => {
-    // Calculate shipping based on location and total
+    // Flat shipping fee for all orders
     const subtotal = totalPrice();
     if (subtotal === 0) {
       setShippingFee(0);
       return;
     }
 
-    if (subtotal >= 999) {
-      setShippingFee(0);
-    } else if (formData.pincode === '626117' || formData.city.toLowerCase().includes('rajapalayam')) {
-      setShippingFee(0); // Local delivery free
-    } else if (formData.pincode.startsWith('6')) {
-      setShippingFee(50); // Tamil Nadu/South
-    } else if (formData.pincode.length >= 6) {
-      setShippingFee(100); // Rest of India
-    } else {
-      setShippingFee(0);
-    }
-  }, [formData.pincode, formData.city, totalPrice]);
+    setShippingFee(80);
+  }, [totalPrice]);
 
   const finalTotal = total + shippingFee;
 
