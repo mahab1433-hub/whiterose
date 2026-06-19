@@ -17,40 +17,39 @@ export default function SyncManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const userId = session.user.id;
+      try {
+        // 1. Sync & merge wishlist and cart IDs
+        const currentLocalCart = useCart.getState().items;
+        const currentLocalWishlist = useWishlist.getState().wishlistIds;
 
-      // 1. Sync Wishlist
-      const { data: wishlistData } = await supabase
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', userId);
-      
-      if (wishlistData) {
-        setWishlist(wishlistData.map(w => w.product_id));
-      }
+        const syncRes = await fetch('/api/user/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+            email: session.user.email,
+            phone: session.user.phone || null,
+            role: session.user.user_metadata?.role || 'user',
+            localCart: currentLocalCart.map(i => ({ id: i.id, quantity: i.quantity })),
+            localWishlist: currentLocalWishlist
+          })
+        });
 
-      // 2. Sync Cart
-      // Fetch server cart
-      const { data: serverCart } = await supabase
-        .from('cart_items')
-        .select('*, products(*)')
-        .eq('user_id', userId);
-
-      if (serverCart && serverCart.length > 0) {
-        const cartItems = serverCart.map(item => ({
-          ...item.products,
-          quantity: item.quantity
-        }));
-        setItems(cartItems);
-      } else if (items.length > 0) {
-        // If server cart is empty but local cart has items, upload them
-        for (const item of items) {
-          await supabase.from('cart_items').upsert({
-            user_id: userId,
-            product_id: item.id,
-            quantity: item.quantity
-          }, { onConflict: 'user_id,product_id' });
+        if (syncRes.ok) {
+          const data = await syncRes.json();
+          if (data.wishlist) {
+            setWishlist(data.wishlist);
+          }
+          
+          // 2. Fetch fully populated cart items from server
+          const cartRes = await fetch('/api/user/cart');
+          if (cartRes.ok) {
+            const serverCart = await cartRes.json();
+            setItems(serverCart);
+          }
         }
+      } catch (err) {
+        console.error('Error in syncData:', err);
       }
     };
 
@@ -59,6 +58,9 @@ export default function SyncManager() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         syncData();
+      } else if (event === 'SIGNED_OUT') {
+        setItems([]);
+        setWishlist([]);
       }
     });
 
@@ -70,19 +72,19 @@ export default function SyncManager() {
     if (pathname === '/login' || pathname === '/update-password') return;
 
     const updateDbCart = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
 
-      const userId = session.user.id;
-
-      // Simple sync: clear and re-upload or upsert
-      // For efficiency, we just upsert the current items
-      for (const item of items) {
-        await supabase.from('cart_items').upsert({
-          user_id: userId,
-          product_id: item.id,
-          quantity: item.quantity
-        }, { onConflict: 'user_id,product_id' });
+        await fetch('/api/user/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: items.map(item => ({ id: item.id, quantity: item.quantity }))
+          })
+        });
+      } catch (err) {
+        console.error('Error in updateDbCart:', err);
       }
     };
 

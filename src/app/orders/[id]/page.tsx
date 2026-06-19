@@ -29,25 +29,12 @@ const OrderDetailsPage = () => {
           return;
         }
 
-        const { data, error } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            order_items (
-              quantity,
-              price,
-              products (
-                name,
-                images
-              )
-            )
-          `)
-          .eq('id', id)
-          .eq('user_id', user.id)
-          .single();
+        const res = await fetch(`/api/user/orders/${id}`);
+        if (!res.ok) throw new Error('Order not found');
+        const data = await res.json();
 
         if (isMounted) {
-          if (!error && data) {
+          if (data) {
             setOrder(data);
           }
           setLoading(false);

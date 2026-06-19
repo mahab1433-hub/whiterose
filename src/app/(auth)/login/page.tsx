@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, UserPlus, LogIn, Eye, EyeOff, KeyRound, User as UserIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { useCart } from '@/lib/store';
+
 
 const LoginContent = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ const LoginContent = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { clearCart } = useCart();
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/orders';
@@ -51,7 +51,6 @@ const LoginContent = () => {
         });
         if (error) throw error;
         toast.success('Account created successfully!');
-        clearCart();
         router.push(redirectTo);
         router.refresh();
       } else {
@@ -61,7 +60,6 @@ const LoginContent = () => {
         });
         if (error) throw error;
         toast.success('Successfully signed in!');
-        clearCart();
         router.push(redirectTo);
         router.refresh();
       }

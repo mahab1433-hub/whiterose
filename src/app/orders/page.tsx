@@ -25,23 +25,12 @@ const OrdersPage = () => {
           return;
         }
 
-        const { data, error } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            order_items (
-              quantity,
-              products (
-                name,
-                images
-              )
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+        const res = await fetch('/api/user/orders');
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        const data = await res.json();
 
         if (isMounted) {
-          if (!error) setOrders(data || []);
+          setOrders(data || []);
           setLoading(false);
         }
       } catch (err) {
@@ -51,22 +40,6 @@ const OrdersPage = () => {
     };
 
     fetchOrders();
-
-    // Real-time subscription for this user's orders
-    const channel = supabase
-      .channel(`user_orders_${Math.random()}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'orders'
-        },
-        () => {
-          fetchOrders();
-        }
-      )
-      .subscribe();
 
     // Listen for auth changes to re-fetch if needed
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -81,7 +54,6 @@ const OrdersPage = () => {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      supabase.removeChannel(channel);
     };
   }, []);
 

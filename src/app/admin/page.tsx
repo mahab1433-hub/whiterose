@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { ShoppingBag, Package, TrendingUp, Users } from 'lucide-react';
-import { createClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 
 const AdminOverview = () => {
@@ -16,46 +15,34 @@ const AdminOverview = () => {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createClient();
-
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
+ 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
-      const [
-        { data: revenueData, error: revenueError },
-        { data: recentData, error: recentError },
-        { count: productsCount, error: productsError },
-        { count: usersCount, error: usersError }
-      ] = await Promise.all([
-        supabase.from('orders').select('total_amount, status'),
-        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user')
+      const [metricsRes, ordersRes] = await Promise.all([
+        fetch('/api/admin/metrics'),
+        fetch('/api/admin/orders?limit=5')
       ]);
 
-      if (revenueError) throw revenueError;
-      if (recentError) throw recentError;
-      if (productsError) throw productsError;
-      if (usersError) throw usersError;
+      if (!metricsRes.ok || !ordersRes.ok) {
+        throw new Error('Failed to fetch admin dashboard data');
+      }
 
-      // Calculate Revenue (only from successful/processing orders)
-      const totalRevenue = revenueData
-        .filter(o => o.status !== 'cancelled' && o.status !== 'pending')
-        .reduce((sum, order) => sum + Number(order.total_amount), 0);
+      const metricsData = await metricsRes.json();
+      const ordersData = await ordersRes.json();
 
       setMetrics({
-        revenue: totalRevenue,
-        orders: revenueData.length,
-        products: productsCount || 0,
-        users: usersCount || 0,
+        revenue: metricsData.revenue,
+        orders: metricsData.orders,
+        products: metricsData.products,
+        users: metricsData.users,
       });
 
-      setRecentOrders(recentData || []);
+      setRecentOrders(ordersData || []);
 
     } catch (error: any) {
       console.error('Dashboard Load Error:', error);

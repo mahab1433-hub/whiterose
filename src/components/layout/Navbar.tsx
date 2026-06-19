@@ -29,8 +29,7 @@ const Navbar = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUserName(session.user.user_metadata?.full_name || 'User');
-          const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-          setIsAdmin(profile?.role === 'admin' || session.user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(session.user.email || ''));
+          setIsAdmin(ADMIN_EMAILS.includes(session.user.email || ''));
         }
       } catch (error) {
         console.error('Navbar auth error:', error);
@@ -42,8 +41,7 @@ const Navbar = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUserName(session.user.user_metadata?.full_name || 'User');
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-        setIsAdmin(profile?.role === 'admin' || session.user.user_metadata?.role === 'admin' || ADMIN_EMAILS.includes(session.user.email || ''));
+        setIsAdmin(ADMIN_EMAILS.includes(session.user.email || ''));
       } else {
         setUserName(null);
         setIsAdmin(false);
@@ -140,7 +138,6 @@ const Navbar = () => {
                 <button 
                   onClick={async () => {
                     await supabase.auth.signOut();
-                    clearCart();
                     toast.success('Signed out');
                     router.refresh();
                     router.push('/');

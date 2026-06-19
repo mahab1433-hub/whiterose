@@ -31,20 +31,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
       return toast.error('Please login to use wishlist');
     }
 
-    toggleWishlist(product.id);
+    try {
+      const response = await fetch('/api/user/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          action: isFavorite ? 'remove' : 'add'
+        })
+      });
 
-    if (!isFavorite) {
-      const { error } = await supabase
-        .from('wishlist')
-        .upsert({ user_id: session.user.id, product_id: product.id }, { onConflict: 'user_id,product_id' });
-      if (!error) toast.success('Added to wishlist');
-    } else {
-      const { error } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('user_id', session.user.id)
-        .eq('product_id', product.id);
-      if (!error) toast.success('Removed from wishlist');
+      if (!response.ok) {
+        throw new Error('Failed to update wishlist');
+      }
+
+      toggleWishlist(product.id);
+      toast.success(isFavorite ? 'Removed from wishlist' : 'Added to wishlist');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update wishlist');
     }
   };
 

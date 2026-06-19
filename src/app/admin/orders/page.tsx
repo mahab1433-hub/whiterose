@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { createClient } from '@/lib/supabase';
 import { Search, Filter, Download, FileText, Trash2, Edit } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -12,45 +11,15 @@ export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
-  const supabase = createClient();
-
   useEffect(() => {
     fetchOrders();
-
-    // Real-time subscription
-    const channel = supabase
-      .channel('orders_channel')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        (payload) => {
-          console.log('Real-time update:', payload);
-          fetchOrders(); // Re-fetch to get joined data cleanly
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles ( name, phone ),
-          order_items (
-            quantity,
-            price,
-            products ( name )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/api/admin/orders');
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const data = await res.json();
       setOrders(data || []);
     } catch (error: any) {
       toast.error('Failed to load orders: ' + error.message);
@@ -61,14 +30,14 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', id);
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus })
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to update status');
       toast.success(`Order status updated to ${newStatus}`);
-      // fetchOrders will be called by realtime subscription, but we can update state optimistically
       setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
     } catch (error: any) {
       toast.error('Failed to update status');
@@ -79,12 +48,11 @@ export default function AdminOrders() {
     if (!window.confirm('Are you sure you want to delete this fake/test order?')) return;
     
     try {
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('id', id);
+      const res = await fetch(`/api/admin/orders?id=${id}`, {
+        method: 'DELETE'
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to delete order');
       toast.success('Order deleted successfully');
       setOrders(orders.filter(o => o.id !== id));
     } catch (error: any) {

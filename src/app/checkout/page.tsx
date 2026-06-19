@@ -5,7 +5,7 @@ import { useCart } from '@/lib/store';
 import { createClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { Lock, ChevronRight, CreditCard, ShieldCheck } from 'lucide-react';
+import { Lock, ChevronRight, CreditCard, ShieldCheck, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -17,6 +17,8 @@ const CheckoutContent = () => {
   const total = totalPrice();
   const router = useRouter();
   const supabase = createClient();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successOrderId, setSuccessOrderId] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,20 +29,8 @@ const CheckoutContent = () => {
     pincode: '',
   });
 
-  const [shippingFee, setShippingFee] = useState(0);
-
-  useEffect(() => {
-    // Flat shipping fee for all orders
-    const subtotal = totalPrice();
-    if (subtotal === 0) {
-      setShippingFee(0);
-      return;
-    }
-
-    setShippingFee(80);
-  }, [totalPrice]);
-
-  const finalTotal = total + shippingFee;
+  const shippingFee = 0;
+  const finalTotal = total;
 
 
   useEffect(() => {
@@ -110,7 +100,7 @@ const CheckoutContent = () => {
         description: 'Luxury Beauty Purchase',
         order_id: orderData.id,
         handler: async function (response: any) {
-          toast.success('Payment Received. Finalizing Order...');
+          toast.success('Payment is successful');
           
           try {
             const currentUserId = user?.id || (await supabase.auth.getUser()).data.user?.id;
@@ -119,32 +109,30 @@ const CheckoutContent = () => {
               throw new Error('User not authenticated. Please contact support with payment ID: ' + response.razorpay_payment_id);
             }
 
-            const { data: order, error: orderError } = await supabase.from('orders').insert({
-              user_id: currentUserId,
-              total_amount: finalTotal,
-              status: 'processing',
-              payment_id: response.razorpay_payment_id,
-              payment_status: 'paid',
-              shipping_address: { ...formData, shipping_fee: shippingFee },
-            }).select().single();
+            const orderRes = await fetch('/api/user/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                totalAmount: finalTotal,
+                paymentId: response.razorpay_payment_id,
+                paymentStatus: 'paid',
+                shippingAddress: { ...formData, shipping_fee: shippingFee },
+                items: items.map(item => ({
+                  productId: item.id,
+                  quantity: item.quantity,
+                  price: item.price
+                }))
+              })
+            });
 
-            if (orderError) throw orderError;
+            if (!orderRes.ok) {
+              const errData = await orderRes.json();
+              throw new Error(errData.error || 'Order saving failed');
+            }
 
-            if (order) {
-              const orderItems = items.map(item => ({
-                order_id: order.id,
-                product_id: item.id,
-                quantity: item.quantity,
-                price: item.price
-              }));
+            const { order } = await orderRes.json();
 
-              const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-              if (itemsError) {
-                console.error('Order items insertion error:', itemsError);
-                // We still have the order, so we can proceed but notify admin
-              }
-
-              clearCart();
+            clearCart();
               
               // Send confirmation email
               try {
@@ -164,8 +152,8 @@ const CheckoutContent = () => {
               }
 
               router.refresh();
-              router.push(`/checkout/success?id=${order.id}`);
-            }
+              setSuccessOrderId(order.id);
+              setShowSuccessModal(true);
           } catch (err: any) {
             console.error('CRITICAL ORDER INSERTION ERROR:', err);
             toast.error('Order saving failed, but payment was successful. Please contact support with Payment ID: ' + response.razorpay_payment_id);
@@ -273,6 +261,44 @@ const CheckoutContent = () => {
           </div>
         </div>
       </div>
+      
+      {/* Success Modal Popup */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-zinc-950 border border-white/10 p-8 text-center space-y-6 rounded-sm relative shadow-2xl">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
+                <CheckCircle size={40} className="text-green-500" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-2xl font-serif uppercase tracking-widest text-white">Payment is Successful</h2>
+              <p className="text-xs text-zinc-400 font-light tracking-wide leading-relaxed">
+                Your payment was successfully received. Thank you for your purchase!
+              </p>
+            </div>
+
+            {successOrderId && (
+              <div className="py-3 border-y border-white/5 font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+                Order Ref: <span className="text-white">WRB-{successOrderId.substring(0, 8).toUpperCase()}</span>
+              </div>
+            )}
+
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  router.push(`/checkout/success?id=${successOrderId}`);
+                }}
+                className="w-full py-3 bg-white !text-black hover:bg-accent-pink hover:text-white transition-colors text-[10px] uppercase tracking-widest font-bold"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

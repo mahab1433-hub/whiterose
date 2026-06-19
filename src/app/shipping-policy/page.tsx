@@ -11,7 +11,7 @@ const shippingFeatures = [
   {
     icon: <Truck className="text-accent-pink" size={24} />,
     title: "Standard Shipping",
-    desc: "Flat ₹80 shipping charge on all orders across India."
+    desc: "Free shipping on all orders across India."
   },
   {
     icon: <Clock className="text-accent-pink" size={24} />,
@@ -98,7 +98,7 @@ export default function ShippingPolicy() {
                       <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
                          <td className="p-4 text-white uppercase">All India</td>
                         <td className="p-4">Standard Shipping</td>
-                        <td className="p-4">₹80 Flat Rate</td>
+                        <td className="p-4">Free</td>
                       </tr>
                     </tbody>
                   </table>

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { createClient } from '@/lib/supabase';
 import { Search, Mail, Phone, Calendar, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -11,8 +10,6 @@ export default function AdminCustomers() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const supabase = createClient();
-
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -20,13 +17,9 @@ export default function AdminCustomers() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'user')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/api/admin/customers');
+      if (!res.ok) throw new Error('Failed to fetch customers');
+      const data = await res.json();
       setCustomers(data || []);
     } catch (error: any) {
       toast.error('Failed to load customers');
