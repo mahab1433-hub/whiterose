@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // 2. Sync Wishlist
     // Get existing wishlist items from DB
     const dbWishlist = await db.all('SELECT product_id FROM wishlist');
-    const dbWishlistIds = dbWishlist.map(w => w.product_id);
+    const dbWishlistIds = dbWishlist.map((w: any) => w.product_id);
 
     // Add any missing local wishlist items to DB
     if (Array.isArray(localWishlist)) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Get final synced wishlist
-    const finalWishlist = (await db.all('SELECT product_id FROM wishlist')).map(w => w.product_id);
+    const finalWishlist = (await db.all('SELECT product_id FROM wishlist')).map((w: any) => w.product_id);
 
     // 3. Sync Cart
     // Get existing cart items from DB
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     
     if (Array.isArray(localCart)) {
       for (const item of localCart) {
-        const dbItem = dbCart.find(c => c.product_id === item.id);
+        const dbItem = dbCart.find((c: any) => c.product_id === item.id);
         if (dbItem) {
           // If exists in both, use the max or sum. Let's use max for safety/logical sense
           const newQty = Math.max(dbItem.quantity, item.quantity);

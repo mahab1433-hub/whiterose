@@ -13,7 +13,7 @@ export async function GET() {
     const wishlistItems = await db.all('SELECT product_id FROM wishlist');
     await db.close();
 
-    return NextResponse.json(wishlistItems.map(item => item.product_id));
+    return NextResponse.json(wishlistItems.map((item: any) => item.product_id));
   } catch (error: any) {
     console.error('Wishlist GET error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

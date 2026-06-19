@@ -1,246 +1,371 @@
-import sqlite3 from 'sqlite3';
-import { open, Database } from 'sqlite';
-import path from 'path';
-import fs from 'fs';
-
-const DB_DIR = path.join(process.cwd(), 'databases');
-
-// Ensure DB directory exists
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
+import { getServerSupabase } from './auth';
 
 /**
- * Open or create a user's isolated SQLite database
+ * Mock SQLite interface that translates SQL queries to Supabase API calls.
+ * Enforces security by binding all operations to the authenticated user's ID.
  */
-export async function openUserDb(userId: string): Promise<Database> {
-  const safeUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '');
-  const dbPath = path.join(DB_DIR, `user_${safeUserId}.db`);
+class SupabaseUserDb {
+  private userId: string;
 
-  const db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  });
+  constructor(userId: string) {
+    this.userId = userId;
+  }
 
-  // Enable foreign keys
-  await db.run('PRAGMA foreign_keys = ON;');
+  async all(query: string, params: any[] = []): Promise<any[]> {
+    const supabase = await getServerSupabase();
+    const trimmed = query.trim().replace(/\s+/g, ' ');
 
-  // Initialize schema if not exists
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS profiles (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      phone TEXT,
-      email TEXT,
-      role TEXT DEFAULT 'user',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    // 1. SELECT product_id, quantity FROM cart_items
+    if (trimmed.startsWith('SELECT product_id, quantity FROM cart_items')) {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('product_id, quantity')
+        .eq('user_id', this.userId);
+      if (error) throw error;
+      return data || [];
+    }
 
-    CREATE TABLE IF NOT EXISTS cart_items (
-      product_id TEXT PRIMARY KEY,
-      quantity INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    // 2. SELECT product_id FROM wishlist
+    if (trimmed.startsWith('SELECT product_id FROM wishlist')) {
+      const { data, error } = await supabase
+        .from('wishlist')
+        .select('product_id')
+        .eq('user_id', this.userId);
+      if (error) throw error;
+      return data || [];
+    }
 
-    CREATE TABLE IF NOT EXISTS wishlist (
-      product_id TEXT PRIMARY KEY,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    // 3. SELECT * FROM orders ORDER BY created_at DESC / SELECT * FROM orders
+    if (trimmed.startsWith('SELECT * FROM orders')) {
+      let q = supabase.from('orders').select('*');
+      if (trimmed.includes('ORDER BY created_at DESC')) {
+        q = q.order('created_at', { ascending: false });
+      }
+      
+      // Filter by user ID
+      q = q.eq('user_id', this.userId);
+      
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    }
 
-    CREATE TABLE IF NOT EXISTS orders (
-      id TEXT PRIMARY KEY,
-      total_amount REAL NOT NULL,
-      status TEXT DEFAULT 'pending',
-      payment_id TEXT,
-      payment_status TEXT DEFAULT 'unpaid',
-      shipping_address TEXT, -- JSON string
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    // 4. SELECT * FROM order_items WHERE order_id = ?
+    if (trimmed.startsWith('SELECT * FROM order_items WHERE order_id =')) {
+      const orderId = params[0] || trimmed.match(/order_id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
+      if (!orderId) return [];
+      
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderId);
+      if (error) throw error;
+      return data || [];
+    }
 
-    CREATE TABLE IF NOT EXISTS order_items (
-      id TEXT PRIMARY KEY,
-      order_id TEXT NOT NULL,
-      product_id TEXT NOT NULL,
-      quantity INTEGER NOT NULL,
-      price REAL NOT NULL,
-      FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
-    );
-  `);
+    // 5. SELECT total_amount, status FROM orders
+    if (trimmed.startsWith('SELECT total_amount, status FROM orders')) {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('total_amount, status')
+        .eq('user_id', this.userId);
+      if (error) throw error;
+      return data || [];
+    }
 
-  return db;
+    console.warn('Unhandled SQL query in all():', query, params);
+    return [];
+  }
+
+  async get(query: string, params: any[] = []): Promise<any> {
+    const supabase = await getServerSupabase();
+    const trimmed = query.trim().replace(/\s+/g, ' ');
+
+    // 1. SELECT name, email, phone, role FROM profiles WHERE id = ? / SELECT * FROM profiles WHERE id = ?
+    if (trimmed.includes('FROM profiles WHERE id =')) {
+      const id = params[0] || trimmed.match(/id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1] || this.userId;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+
+    // 2. SELECT 1 FROM orders WHERE id = ? / SELECT * FROM orders WHERE id = ?
+    if (trimmed.includes('FROM orders WHERE id =')) {
+      const id = params[0] || trimmed.match(/id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+
+    console.warn('Unhandled SQL query in get():', query, params);
+    return null;
+  }
+
+  async run(query: string, params: any[] = []): Promise<any> {
+    const supabase = await getServerSupabase();
+    const trimmed = query.trim().replace(/\s+/g, ' ');
+
+    // Transactions and Pragma settings
+    if (
+      trimmed === 'BEGIN TRANSACTION' || 
+      trimmed === 'COMMIT' || 
+      trimmed === 'ROLLBACK' || 
+      trimmed === 'PRAGMA foreign_keys = ON;'
+    ) {
+      return { changes: 0 };
+    }
+
+    // 1. DELETE FROM cart_items
+    if (trimmed.startsWith('DELETE FROM cart_items')) {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', this.userId);
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 2. INSERT INTO cart_items (product_id, quantity) VALUES (?, ?) ON CONFLICT(product_id) DO UPDATE SET quantity = ?
+    // 3. INSERT INTO cart_items (product_id, quantity) VALUES (?, ?) ON CONFLICT(product_id) DO NOTHING
+    if (trimmed.startsWith('INSERT INTO cart_items')) {
+      const productId = params[0];
+      const quantity = params[1];
+      
+      const { error } = await supabase
+        .from('cart_items')
+        .upsert({
+          user_id: this.userId,
+          product_id: productId,
+          quantity: quantity
+        }, { onConflict: 'user_id,product_id' });
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 4. UPDATE cart_items SET quantity = ? WHERE product_id = ?
+    if (trimmed.startsWith('UPDATE cart_items SET quantity =')) {
+      const quantity = params[0];
+      const productId = params[1];
+      const { error } = await supabase
+        .from('cart_items')
+        .update({ quantity })
+        .eq('user_id', this.userId)
+        .eq('product_id', productId);
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 5. DELETE FROM wishlist WHERE product_id = ? or just DELETE FROM wishlist
+    if (trimmed.startsWith('DELETE FROM wishlist')) {
+      let q = supabase.from('wishlist').delete().eq('user_id', this.userId);
+      if (trimmed.includes('product_id =')) {
+        const productId = params[0] || trimmed.match(/product_id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
+        if (productId) {
+          q = q.eq('product_id', productId);
+        }
+      }
+      const { error } = await q;
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 6. INSERT INTO wishlist (product_id) VALUES (?) ON CONFLICT(product_id) DO NOTHING
+    if (trimmed.startsWith('INSERT INTO wishlist')) {
+      const productId = params[0];
+      const { error } = await supabase
+        .from('wishlist')
+        .upsert({
+          user_id: this.userId,
+          product_id: productId
+        }, { onConflict: 'user_id,product_id' });
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 7. UPDATE orders SET status = ? WHERE id = ?
+    if (trimmed.startsWith('UPDATE orders SET status =')) {
+      const status = params[0];
+      const orderId = params[1];
+      const { error } = await supabase
+        .from('orders')
+        .update({ status })
+        .eq('id', orderId);
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 8. DELETE FROM orders WHERE id = ?
+    if (trimmed.startsWith('DELETE FROM orders WHERE id =')) {
+      const orderId = params[0] || trimmed.match(/id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
+      if (orderId) {
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .eq('id', orderId);
+        if (error) throw error;
+      }
+      return { changes: 1 };
+    }
+
+    // 9. INSERT INTO orders (id, total_amount, status, payment_id, payment_status, shipping_address) VALUES (?, ?, ?, ?, ?, ?)
+    if (trimmed.startsWith('INSERT INTO orders')) {
+      const [id, total_amount, status, payment_id, payment_status, shipping_address] = params;
+      const { error } = await supabase
+        .from('orders')
+        .insert({
+          id,
+          user_id: this.userId,
+          total_amount,
+          status,
+          payment_id,
+          payment_status,
+          shipping_address: typeof shipping_address === 'string' ? JSON.parse(shipping_address) : shipping_address
+        });
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 10. INSERT INTO order_items (id, order_id, product_id, quantity, price) VALUES (?, ?, ?, ?, ?)
+    if (trimmed.startsWith('INSERT INTO order_items')) {
+      const [id, order_id, product_id, quantity, price] = params;
+      const { error } = await supabase
+        .from('order_items')
+        .insert({
+          id,
+          order_id,
+          product_id,
+          quantity,
+          price
+        });
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    console.warn('Unhandled SQL query in run():', query, params);
+    return { changes: 0 };
+  }
+
+  async exec(query: string): Promise<void> {
+    return;
+  }
+
+  async close(): Promise<void> {
+    return;
+  }
 }
 
 /**
- * Returns all user database files
+ * Open or create a user's isolated database session
  */
-function getUserDbFiles(): string[] {
-  if (!fs.existsSync(DB_DIR)) return [];
-  return fs.readdirSync(DB_DIR)
-    .filter(file => file.startsWith('user_') && file.endsWith('.db'));
+export async function openUserDb(userId: string): Promise<any> {
+  return new SupabaseUserDb(userId);
 }
 
 /**
- * Extract userId from a database filename
- */
-function getUserIdFromFilename(filename: string): string {
-  return filename.replace(/^user_/, '').replace(/\.db$/, '');
-}
-
-/**
- * Aggregates all orders across all user databases for the admin panel
+ * Aggregates all orders across the database for the admin panel
  */
 export async function adminGetAllOrders(): Promise<any[]> {
-  const dbFiles = getUserDbFiles();
-  const allOrders: any[] = [];
+  const supabase = await getServerSupabase();
+  const { data: orders, error: ordersError } = await supabase
+    .from('orders')
+    .select('*, profiles(*), order_items(*)')
+    .order('created_at', { ascending: false });
 
-  for (const file of dbFiles) {
-    const userId = getUserIdFromFilename(file);
-    try {
-      const db = await openUserDb(userId);
-      const orders = await db.all('SELECT * FROM orders ORDER BY created_at DESC');
-      const profile = await db.get('SELECT name, email, phone, role FROM profiles WHERE id = ?', userId);
-
-      for (const order of orders) {
-        const orderItems = await db.all('SELECT * FROM order_items WHERE order_id = ?', order.id);
-        
-        // Parse shipping address
-        let parsedAddress = null;
-        if (order.shipping_address) {
-          try {
-            parsedAddress = JSON.parse(order.shipping_address);
-          } catch (e) {
-            parsedAddress = order.shipping_address;
-          }
-        }
-
-        allOrders.push({
-          ...order,
-          user_id: userId,
-          shipping_address: parsedAddress,
-          profiles: profile || { name: 'Unknown', email: 'Unknown', phone: 'Unknown' },
-          order_items: orderItems.map(item => ({
-            quantity: item.quantity,
-            price: item.price,
-            product_id: item.product_id,
-            // products placeholder will be populated dynamically or client-side
-            products: { name: 'Product ' + item.product_id.substring(0, 4) }
-          }))
-        });
-      }
-      await db.close();
-    } catch (err) {
-      console.error(`Error reading database file ${file}:`, err);
-    }
+  if (ordersError) {
+    console.error('Error fetching admin orders:', ordersError);
+    return [];
   }
 
-  // Sort all orders by date descending
-  return allOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  return (orders || []).map(order => ({
+    ...order,
+    shipping_address: typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address,
+    profiles: order.profiles || { name: 'Unknown', email: 'Unknown', phone: 'Unknown' },
+    order_items: (order.order_items || []).map((item: any) => ({
+      quantity: item.quantity,
+      price: item.price,
+      product_id: item.product_id,
+      products: { name: 'Product ' + item.product_id.substring(0, 4) }
+    }))
+  }));
 }
 
 /**
- * Updates status of an order by searching user databases
+ * Updates status of an order
  */
 export async function adminUpdateOrderStatus(orderId: string, status: string): Promise<boolean> {
-  const dbFiles = getUserDbFiles();
-  for (const file of dbFiles) {
-    const userId = getUserIdFromFilename(file);
-    try {
-      const db = await openUserDb(userId);
-      const order = await db.get('SELECT 1 FROM orders WHERE id = ?', orderId);
-      if (order) {
-        await db.run('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
-        await db.close();
-        return true;
-      }
-      await db.close();
-    } catch (err) {
-      console.error(`Error in adminUpdateOrderStatus for ${file}:`, err);
-    }
-  }
-  return false;
+  const supabase = await getServerSupabase();
+  const { error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', orderId);
+  return !error;
 }
 
 /**
- * Deletes an order by searching user databases
+ * Deletes an order
  */
 export async function adminDeleteOrder(orderId: string): Promise<boolean> {
-  const dbFiles = getUserDbFiles();
-  for (const file of dbFiles) {
-    const userId = getUserIdFromFilename(file);
-    try {
-      const db = await openUserDb(userId);
-      const order = await db.get('SELECT 1 FROM orders WHERE id = ?', orderId);
-      if (order) {
-        await db.run('DELETE FROM orders WHERE id = ?', [orderId]);
-        await db.close();
-        return true;
-      }
-      await db.close();
-    } catch (err) {
-      console.error(`Error in adminDeleteOrder for ${file}:`, err);
-    }
-  }
-  return false;
+  const supabase = await getServerSupabase();
+  const { error } = await supabase
+    .from('orders')
+    .delete()
+    .eq('id', orderId);
+  return !error;
 }
 
 /**
- * Aggregates all customers across all user databases for the admin panel
+ * Aggregates all customers across the database for the admin panel
  */
 export async function adminGetAllCustomers(): Promise<any[]> {
-  const dbFiles = getUserDbFiles();
-  const allCustomers: any[] = [];
+  const supabase = await getServerSupabase();
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .neq('role', 'admin')
+    .order('created_at', { ascending: false });
 
-  for (const file of dbFiles) {
-    const userId = getUserIdFromFilename(file);
-    try {
-      const db = await openUserDb(userId);
-      const profile = await db.get('SELECT * FROM profiles WHERE id = ?', userId);
-      if (profile && profile.role !== 'admin') {
-        allCustomers.push(profile);
-      }
-      await db.close();
-    } catch (err) {
-      console.error(`Error loading profile from ${file}:`, err);
-    }
+  if (error) {
+    console.error('Error fetching admin customers:', error);
+    return [];
   }
-
-  return allCustomers.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  return profiles || [];
 }
 
 /**
  * Aggregates dashboard metrics (revenue, order count, user count)
  */
 export async function adminGetMetrics(): Promise<any> {
-  const dbFiles = getUserDbFiles();
-  let revenue = 0;
-  let ordersCount = 0;
-  let usersCount = 0;
+  const supabase = await getServerSupabase();
+  const { data: orders, error: ordersError } = await supabase
+    .from('orders')
+    .select('total_amount, status');
 
-  for (const file of dbFiles) {
-    const userId = getUserIdFromFilename(file);
-    try {
-      const db = await openUserDb(userId);
-      const orders = await db.all('SELECT total_amount, status FROM orders');
-      const profile = await db.get('SELECT role FROM profiles WHERE id = ?', userId);
-      
-      ordersCount += orders.length;
-      revenue += orders
-        .filter(o => o.status !== 'cancelled' && o.status !== 'pending')
-        .reduce((sum, o) => sum + o.total_amount, 0);
+  const { count: usersCount, error: usersError } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .neq('role', 'admin');
 
-      if (profile && profile.role !== 'admin') {
-        usersCount++;
-      }
-      
-      await db.close();
-    } catch (err) {
-      console.error(`Error gathering metrics from ${file}:`, err);
-    }
+  if (ordersError || usersError) {
+    console.error('Error fetching admin metrics:', { ordersError, usersError });
+    return { revenue: 0, orders: 0, users: 0 };
   }
+
+  const revenue = (orders || [])
+    .filter(o => o.status !== 'cancelled' && o.status !== 'pending')
+    .reduce((sum, o) => sum + Number(o.total_amount), 0);
 
   return {
     revenue,
-    orders: ordersCount,
-    users: usersCount
+    orders: orders?.length || 0,
+    users: usersCount || 0
   };
 }

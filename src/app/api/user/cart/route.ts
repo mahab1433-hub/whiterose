@@ -18,7 +18,7 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    const productIds = cartItems.map(item => item.product_id);
+    const productIds = cartItems.map((item: any) => item.product_id);
     const { data: products, error } = await supabaseServer
       .from('products')
       .select('*')
@@ -30,15 +30,15 @@ export async function GET() {
     }
 
     const result = cartItems
-      .map(item => {
-        const product = products?.find(p => p.id === item.product_id);
+      .map((item: any) => {
+        const product = products?.find((p: any) => p.id === item.product_id);
         return {
           ...product,
           id: item.product_id, // ensure ID is preserved
           quantity: item.quantity,
         };
       })
-      .filter(item => item.name); // only return items that successfully resolved to a product
+      .filter((item: any) => item.name); // only return items that successfully resolved to a product
 
     return NextResponse.json(result);
   } catch (error: any) {

@@ -29,7 +29,7 @@ export async function GET(
     const orderItems = await db.all('SELECT * FROM order_items WHERE order_id = ?', id);
 
     // Fetch product details for these items
-    const productIds = orderItems.map(item => item.product_id);
+    const productIds = orderItems.map((item: any) => item.product_id);
     let products: any[] = [];
     if (productIds.length > 0) {
       const { data } = await supabaseServer
@@ -39,8 +39,8 @@ export async function GET(
       products = data || [];
     }
 
-    const populatedItems = orderItems.map(item => {
-      const product = products.find(p => p.id === item.product_id);
+    const populatedItems = orderItems.map((item: any) => {
+      const product = products.find((p: any) => p.id === item.product_id);
       const imgUrl = product?.image_url || '';
       const imagesList = product?.images || (imgUrl ? [imgUrl] : []);
 

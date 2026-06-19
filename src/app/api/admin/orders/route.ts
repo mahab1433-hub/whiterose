@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     // 2. Resolve product details from Supabase in batch
     const productIds = new Set<string>();
-    orders.forEach(order => {
+    orders.forEach((order: any) => {
       order.order_items?.forEach((item: any) => {
         if (item.product_id) productIds.add(item.product_id);
       });
@@ -38,9 +38,9 @@ export async function GET(request: Request) {
     }
 
     // 3. Populate product details on each order item
-    orders.forEach(order => {
+    orders.forEach((order: any) => {
       order.order_items?.forEach((item: any) => {
-        const product = products.find(p => p.id === item.product_id);
+        const product = products.find((p: any) => p.id === item.product_id);
         item.products = {
           name: product?.name || 'Unknown Product',
           image_url: product?.image_url || '',
