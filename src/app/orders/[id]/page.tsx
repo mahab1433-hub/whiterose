@@ -29,7 +29,11 @@ const OrderDetailsPage = () => {
           return;
         }
 
-        const res = await fetch(`/api/user/orders/${id}`);
+        const res = await fetch(`/api/user/orders/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         if (!res.ok) throw new Error('Order not found');
         const data = await res.json();
 

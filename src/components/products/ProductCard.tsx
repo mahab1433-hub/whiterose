@@ -34,7 +34,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     try {
       const response = await fetch('/api/user/wishlist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           productId: product.id,
           action: isFavorite ? 'remove' : 'add'

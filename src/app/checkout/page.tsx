@@ -103,15 +103,19 @@ const CheckoutContent = () => {
           toast.success('Payment is successful');
           
           try {
-            const currentUserId = user?.id || (await supabase.auth.getUser()).data.user?.id;
+            const { data: { session } } = await supabase.auth.getSession();
+            const currentUserId = session?.user?.id;
 
-            if (!currentUserId) {
+            if (!currentUserId || !session) {
               throw new Error('User not authenticated. Please contact support with payment ID: ' + response.razorpay_payment_id);
             }
 
             const orderRes = await fetch('/api/user/orders', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+              },
               body: JSON.stringify({
                 totalAmount: finalTotal,
                 paymentId: response.razorpay_payment_id,

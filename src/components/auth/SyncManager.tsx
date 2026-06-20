@@ -28,7 +28,10 @@ export default function SyncManager() {
 
         const syncRes = await fetch('/api/user/sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
             fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
             email: session.user.email,
@@ -46,7 +49,11 @@ export default function SyncManager() {
           }
           
           // 2. Fetch fully populated cart items from server
-          const cartRes = await fetch('/api/user/cart');
+          const cartRes = await fetch('/api/user/cart', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          });
           if (cartRes.ok) {
             const serverCart = await cartRes.json();
             setItems(serverCart);
@@ -87,7 +94,10 @@ export default function SyncManager() {
 
         await fetch('/api/user/cart', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
             items: items.map(item => ({ id: item.id, quantity: item.quantity }))
           })

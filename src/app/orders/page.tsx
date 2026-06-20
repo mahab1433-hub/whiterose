@@ -25,7 +25,11 @@ const OrdersPage = () => {
           return;
         }
 
-        const res = await fetch('/api/user/orders');
+        const res = await fetch('/api/user/orders', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         if (!res.ok) throw new Error('Failed to fetch orders');
         const data = await res.json();
 
