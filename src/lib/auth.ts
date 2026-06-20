@@ -15,15 +15,14 @@ export async function getServerSupabase() {
   return createServerClient(url, key, {
     cookies: {
       get(name: string) {
-        const val = cookieStore.get(name)?.value;
-        if (!val && token && name.includes('-auth-token')) {
+        if (token && name.includes('-auth-token')) {
           return JSON.stringify({
             access_token: token,
             refresh_token: '',
             expires_at: Math.floor(Date.now() / 1000) + 3600
           });
         }
-        return val;
+        return cookieStore.get(name)?.value;
       },
       set(name: string, value: string, options: CookieOptions) {
         try {
