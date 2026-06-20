@@ -119,7 +119,7 @@ const CheckoutContent = () => {
               body: JSON.stringify({
                 totalAmount: finalTotal,
                 paymentId: response.razorpay_payment_id,
-                paymentStatus: 'paid',
+                paymentStatus: 'pending',
                 shippingAddress: { ...formData, shipping_fee: shippingFee },
                 items: items.map(item => ({
                   productId: item.id,
@@ -136,28 +136,10 @@ const CheckoutContent = () => {
 
             const { order } = await orderRes.json();
 
-            clearCart();
-              
-              // Send confirmation email
-              try {
-                await fetch('/api/email', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    email: formData.email,
-                    orderId: order.id,
-                    items: items,
-                    total: finalTotal,
-                    shippingAddress: formData,
-                  }),
-                });
-              } catch (emailError) {
-                console.error('Failed to send confirmation email:', emailError);
-              }
-
-              router.refresh();
-              setSuccessOrderId(order.id);
-              setShowSuccessModal(true);
+            // Redirect to secure verification page
+            router.push(
+              `/checkout/verify?order_id=${order.id}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`
+            );
           } catch (err: any) {
             console.error('CRITICAL ORDER INSERTION ERROR:', err);
             toast.error('Order saving failed, but payment was successful. Please contact support with Payment ID: ' + response.razorpay_payment_id);

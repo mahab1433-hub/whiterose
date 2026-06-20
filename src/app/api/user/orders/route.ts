@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         [
           orderId,
           totalAmount,
-          'processing', // default status on successful payment
+          paymentStatus === 'pending' ? 'pending' : 'processing',
           paymentId || null,
           paymentStatus || 'unpaid',
           JSON.stringify(shippingAddress)
@@ -121,8 +121,10 @@ export async function POST(request: Request) {
         );
       }
 
-      // 3. Clear cart since checkout was successful
-      await db.run('DELETE FROM cart_items');
+      // 3. Clear cart since checkout was successful (only if not pending verification)
+      if (paymentStatus !== 'pending') {
+        await db.run('DELETE FROM cart_items');
+      }
 
       await db.run('COMMIT');
     } catch (err) {
