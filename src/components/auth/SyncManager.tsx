@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart, useWishlist } from '@/lib/store';
 import { usePathname } from 'next/navigation';
@@ -9,13 +9,17 @@ export default function SyncManager() {
   const { items, setItems } = useCart();
   const { wishlistIds, setWishlist } = useWishlist();
   const pathname = usePathname();
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     if (pathname === '/login' || pathname === '/update-password') return;
 
     const syncData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        isInitializedRef.current = true;
+        return;
+      }
 
       try {
         // 1. Sync & merge wishlist and cart IDs
@@ -50,6 +54,8 @@ export default function SyncManager() {
         }
       } catch (err) {
         console.error('Error in syncData:', err);
+      } finally {
+        isInitializedRef.current = true;
       }
     };
 
@@ -57,8 +63,10 @@ export default function SyncManager() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
+        isInitializedRef.current = false;
         syncData();
       } else if (event === 'SIGNED_OUT') {
+        isInitializedRef.current = false;
         setItems([]);
         setWishlist([]);
       }
@@ -70,6 +78,7 @@ export default function SyncManager() {
   // Sync local cart changes to DB
   useEffect(() => {
     if (pathname === '/login' || pathname === '/update-password') return;
+    if (!isInitializedRef.current) return;
 
     const updateDbCart = async () => {
       try {

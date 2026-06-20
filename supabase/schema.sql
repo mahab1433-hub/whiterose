@@ -96,7 +96,8 @@ CREATE POLICY "Admins can manage all orders" ON orders FOR ALL USING (is_admin(a
 -- Order Items: Users can view own items.
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own order items" ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE id = order_id AND user_id = auth.uid()));
-CREATE POLICY "Admins can view all items" ON order_items FOR SELECT USING (is_admin(auth.uid()));
+CREATE POLICY "Users can insert own order items" ON order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE id = order_id AND user_id = auth.uid()));
+CREATE POLICY "Admins can manage all order items" ON order_items FOR ALL USING (is_admin(auth.uid()));
 
 -- Function to handle profile creation on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

@@ -11,7 +11,10 @@ class SupabaseUserDb {
     this.userId = userId;
   }
 
-  async all(query: string, params: any[] = []): Promise<any[]> {
+  async all(query: string, params: any = []): Promise<any[]> {
+    if (params !== undefined && params !== null && !Array.isArray(params)) {
+      params = [params];
+    }
     const supabase = await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
@@ -77,7 +80,10 @@ class SupabaseUserDb {
     return [];
   }
 
-  async get(query: string, params: any[] = []): Promise<any> {
+  async get(query: string, params: any = []): Promise<any> {
+    if (params !== undefined && params !== null && !Array.isArray(params)) {
+      params = [params];
+    }
     const supabase = await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
@@ -110,7 +116,10 @@ class SupabaseUserDb {
     return null;
   }
 
-  async run(query: string, params: any[] = []): Promise<any> {
+  async run(query: string, params: any = []): Promise<any> {
+    if (params !== undefined && params !== null && !Array.isArray(params)) {
+      params = [params];
+    }
     const supabase = await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
