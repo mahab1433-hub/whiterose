@@ -1,4 +1,4 @@
-import { getServerSupabase } from './auth';
+import { getServerSupabase, getAuthenticatedUser, isUserAdmin } from './auth';
 
 /**
  * Mock SQLite interface that translates SQL queries to Supabase API calls.
@@ -58,6 +58,19 @@ class SupabaseUserDb {
       const orderId = params[0] || trimmed.match(/order_id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
       if (!orderId) return [];
       
+      // Verify order access
+      const user = await getAuthenticatedUser();
+      const isAdmin = user ? isUserAdmin(user.email) : false;
+      if (!isAdmin) {
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('id', orderId)
+          .eq('user_id', this.userId)
+          .maybeSingle();
+        if (!orderData) return [];
+      }
+      
       const { data, error } = await supabase
         .from('order_items')
         .select('*')
@@ -103,11 +116,16 @@ class SupabaseUserDb {
     if (trimmed.includes('FROM orders WHERE id =')) {
       const id = params[0] || trimmed.match(/id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
       if (!id) return null;
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+      
+      const user = await getAuthenticatedUser();
+      const isAdmin = user ? isUserAdmin(user.email) : false;
+      
+      let q = supabase.from('orders').select('*').eq('id', id);
+      if (!isAdmin) {
+        q = q.eq('user_id', this.userId);
+      }
+      
+      const { data, error } = await q.maybeSingle();
       if (error) throw error;
       return data;
     }
@@ -204,10 +222,16 @@ class SupabaseUserDb {
     if (trimmed.startsWith('UPDATE orders SET status =')) {
       const status = params[0];
       const orderId = params[1];
-      const { error } = await supabase
-        .from('orders')
-        .update({ status })
-        .eq('id', orderId);
+      
+      const user = await getAuthenticatedUser();
+      const isAdmin = user ? isUserAdmin(user.email) : false;
+      
+      let q = supabase.from('orders').update({ status }).eq('id', orderId);
+      if (!isAdmin) {
+        q = q.eq('user_id', this.userId);
+      }
+      
+      const { error } = await q;
       if (error) throw error;
       return { changes: 1 };
     }
@@ -216,10 +240,15 @@ class SupabaseUserDb {
     if (trimmed.startsWith('DELETE FROM orders WHERE id =')) {
       const orderId = params[0] || trimmed.match(/id\s*=\s*['"]?([^'"\s]+)['"]?/)?.[1];
       if (orderId) {
-        const { error } = await supabase
-          .from('orders')
-          .delete()
-          .eq('id', orderId);
+        const user = await getAuthenticatedUser();
+        const isAdmin = user ? isUserAdmin(user.email) : false;
+        
+        let q = supabase.from('orders').delete().eq('id', orderId);
+        if (!isAdmin) {
+          q = q.eq('user_id', this.userId);
+        }
+        
+        const { error } = await q;
         if (error) throw error;
       }
       return { changes: 1 };

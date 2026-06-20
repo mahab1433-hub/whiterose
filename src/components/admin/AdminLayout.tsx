@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { 
   LayoutDashboard, 
   Package, 
@@ -18,12 +19,40 @@ import {
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   // Close sidebar on route change
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [pathname]);
+
+  // Protect Admin Route Client-Side
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      const adminEmails = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
+      
+      if (!user || !user.email || !adminEmails.includes(user.email)) {
+        router.push('/');
+      } else {
+        setIsAdmin(true);
+      }
+    };
+    checkAdminStatus();
+  }, [router]);
+
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-pulse text-[10px] uppercase tracking-[0.4em] text-zinc-500">
+          Verifying Authorization...
+        </div>
+      </div>
+    );
+  }
 
   const menuItems = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
