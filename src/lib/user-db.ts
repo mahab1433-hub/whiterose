@@ -257,12 +257,20 @@ class SupabaseUserDb {
 
     // 9. INSERT INTO orders (id, total_amount, status, payment_id, payment_status, shipping_address) VALUES (?, ?, ?, ?, ?, ?)
     if (trimmed.startsWith('INSERT INTO orders')) {
-      const [id, total_amount, status, payment_id, payment_status, shipping_address] = params;
+      let id, user_id, total_amount, status, payment_id, payment_status, shipping_address;
+      
+      if (trimmed.includes('user_id')) {
+        [id, user_id, total_amount, status, payment_id, payment_status, shipping_address] = params;
+      } else {
+        [id, total_amount, status, payment_id, payment_status, shipping_address] = params;
+        user_id = this.userId;
+      }
+
       const { error } = await supabase
         .from('orders')
         .insert({
           id,
-          user_id: this.userId,
+          user_id,
           total_amount,
           status,
           payment_id,
