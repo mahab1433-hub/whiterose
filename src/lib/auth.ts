@@ -12,16 +12,9 @@ export async function getServerSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dchnqqqzstrglofnuvwb.supabase.co';
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjaG5xcXF6c3RyZ2xvZm51dndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMjg3OTAsImV4cCI6MjA5MTcwNDc5MH0.-l8T8lTJuVRHpkWPkLX4WAbuLKNGYF7EXNOQfqt0ddc';
 
-  return createServerClient(url, key, {
+  const client = createServerClient(url, key, {
     cookies: {
       get(name: string) {
-        if (token && name.includes('-auth-token')) {
-          return JSON.stringify({
-            access_token: token,
-            refresh_token: '',
-            expires_at: Math.floor(Date.now() / 1000) + 3600
-          });
-        }
         return cookieStore.get(name)?.value;
       },
       set(name: string, value: string, options: CookieOptions) {
@@ -40,6 +33,16 @@ export async function getServerSupabase() {
       },
     },
   });
+
+  if (token) {
+    // Standard and robust way to authenticate the client using the Bearer token
+    await client.auth.setSession({
+      access_token: token,
+      refresh_token: ''
+    });
+  }
+
+  return client;
 }
 
 export async function getAuthenticatedUser() {
