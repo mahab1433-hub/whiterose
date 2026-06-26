@@ -142,7 +142,7 @@ const CheckoutContent = () => {
             );
           } catch (err: any) {
             console.error('CRITICAL ORDER INSERTION ERROR:', err);
-            toast.error('Order saving failed, but payment was successful. Please contact support with Payment ID: ' + response.razorpay_payment_id);
+            toast.error('Order saving failed: ' + (err.message || 'Unknown error') + '. Please contact support with Payment ID: ' + response.razorpay_payment_id);
           }
         },
         prefill: {
