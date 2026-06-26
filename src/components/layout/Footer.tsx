@@ -52,18 +52,22 @@ const Footer = () => {
 
         {/* Contact Info */}
         <div>
-          <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Visit Us</h4>
+          <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Contact & Support</h4>
           <ul className="space-y-4 text-sm text-gray-400">
             <li className="flex items-start space-x-3">
-              <MapPin size={18} className="mt-0.5" />
+              <MapPin size={18} className="mt-0.5 flex-shrink-0" />
               <span>1801, Sevalpatti South Street, Madurai Road, Senthur Pipes Near, Rajapalayam - 626117</span>
             </li>
-            <li className="flex items-center space-x-3">
-              <Phone size={18} className="text-white" />
-              <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link>
+            <li className="flex items-start space-x-3">
+              <Phone size={18} className="text-white mt-1 flex-shrink-0" />
+              <div className="flex flex-col space-y-2">
+                <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link>
+                <Link href="tel:+919786030663" className="hover:text-white transition-colors">+91 97860 30663</Link>
+                <Link href="tel:+918825783644" className="hover:text-white transition-colors">+91 88257 83644</Link>
+              </div>
             </li>
             <li className="flex items-center space-x-3">
-              <Mail size={18} className="text-white" />
+              <Mail size={18} className="text-white flex-shrink-0" />
               <Link href="mailto:gayathrirose1726@gmail.com" className="hover:text-white transition-colors">gayathrirose1726@gmail.com</Link>
             </li>
           </ul>
