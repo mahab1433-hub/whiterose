@@ -9,13 +9,27 @@ export type Profile = {
 export type Product = {
   id: string;
   name: string;
-  description: string | null;
-  price: number;
+  sku?: string;
   category: string;
-  image_url: string | null;
+  brand?: string | null;
+  description?: string | null;
+  price: number;
+  offerPrice?: number | null;
   stock: number;
-  rating: number;
+  ingredients?: string | null;
+  benefits?: string | null;
+  usage?: string | null;
+  skinType?: string | null;
+  weight?: string | null;
+  featured?: boolean;
+  status?: 'Active' | 'Draft';
+  images?: string[];
+  image_url?: string | null; // Compatibility fallback
+  rating?: number; // Compatibility fallback
   created_at: string;
+  updated_at?: string;
+  createdAt?: string; // Compatibility camelCase
+  updatedAt?: string; // Compatibility camelCase
 };
 
 export type Order = {

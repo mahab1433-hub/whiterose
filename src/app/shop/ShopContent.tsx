@@ -17,11 +17,26 @@ const ShopContent = ({ initialProducts }: ShopContentProps) => {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'All';
   
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchLatestProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data);
+        }
+      } catch (err) {
+        console.error('Error fetching latest products:', err);
+      }
+    };
+    fetchLatestProducts();
+  }, []);
 
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || 'All');

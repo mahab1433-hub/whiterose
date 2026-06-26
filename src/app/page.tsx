@@ -2,8 +2,11 @@ import Hero from "@/components/layout/Hero";
 import ProductCard from "@/components/products/ProductCard";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getFeaturedProductsServer } from "@/lib/supabase-server";
 
-export default function Home() {
+export default async function Home() {
+  const featuredProducts = await getFeaturedProductsServer();
+
   const featuredCategories = [
     { name: "Makeup", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=2087&auto=format&fit=crop", count: 12 },
     { name: "Skincare", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1974&auto=format&fit=crop", count: 8 },
@@ -46,6 +49,29 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* Featured Products Section */}
+      {featuredProducts && featuredProducts.length > 0 && (
+        <section className="py-24 bg-zinc-950/30 border-t border-white/5">
+          <div className="container mx-auto px-6">
+            <div className="flex justify-between items-end mb-16">
+              <div className="space-y-4">
+                <h2 className="text-[10px] uppercase tracking-[0.4em] text-accent-pink">Curated</h2>
+                <h3 className="text-3xl md:text-5xl font-serif uppercase tracking-wider">Featured Products</h3>
+              </div>
+              <Link href="/shop" className="text-xs uppercase tracking-widest flex items-center space-x-2 border-b border-white hover:text-accent-pink hover:border-accent-pink transition-all pb-1">
+                <span>Shop All</span>
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product as any} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Luxury Experience Section */}
       <section className="py-24 border-y border-white/5">

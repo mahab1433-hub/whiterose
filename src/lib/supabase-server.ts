@@ -5,14 +5,35 @@ const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsIn
 
 export const supabaseServer = createClient(url, key);
 
-export const getProductsServer = async () => {
-  const { data, error } = await supabaseServer
+export const getProductsServer = async (includeInactive = false) => {
+  let query = supabaseServer
     .from('products')
     .select('*')
     .order('created_at', { ascending: false });
   
+  if (!includeInactive) {
+    query = query.eq('status', 'Active');
+  }
+
+  const { data, error } = await query;
+  
   if (error) {
-    console.error('Error fetching products server-side:', error);
+    console.error('Error fetching products server-side:', error.message || error);
+    return [];
+  }
+  return data;
+};
+
+export const getFeaturedProductsServer = async () => {
+  const { data, error } = await supabaseServer
+    .from('products')
+    .select('*')
+    .eq('featured', true)
+    .eq('status', 'Active')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching featured products server-side:', error.message || error);
     return [];
   }
   return data;
