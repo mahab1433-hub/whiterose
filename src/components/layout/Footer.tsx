@@ -61,14 +61,14 @@ const Footer = () => {
             <li className="flex items-start space-x-3">
               <Phone size={18} className="text-white mt-1 flex-shrink-0" />
               <div className="flex flex-col space-y-2">
-                <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link>
+                <span className="text-white font-medium uppercase text-xs tracking-widest">Contacts:</span>
                 <Link href="tel:+919786030663" className="hover:text-white transition-colors">+91 97860 30663</Link>
                 <Link href="tel:+918825783644" className="hover:text-white transition-colors">+91 88257 83644</Link>
               </div>
             </li>
-            <li className="flex items-center space-x-3">
-              <Mail size={18} className="text-white flex-shrink-0" />
-              <Link href="mailto:gayathrirose1726@gmail.com" className="hover:text-white transition-colors">gayathrirose1726@gmail.com</Link>
+            <li className="flex items-start space-x-3">
+              <Mail size={18} className="text-white mt-1 flex-shrink-0" />
+              <Link href="mailto:support.whiterosebeautyparlour@gmail.com" className="hover:text-white transition-colors break-all">support.whiterosebeautyparlour@gmail.com</Link>
             </li>
           </ul>
         </div>
