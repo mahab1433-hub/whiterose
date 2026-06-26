@@ -16,7 +16,8 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = supabaseAdmin;
+    const hasServiceKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY);
+    const supabase = hasServiceKey ? supabaseAdmin : await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // 1. SELECT product_id, quantity FROM cart_items
@@ -98,7 +99,8 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = supabaseAdmin;
+    const hasServiceKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY);
+    const supabase = hasServiceKey ? supabaseAdmin : await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // 1. SELECT name, email, phone, role FROM profiles WHERE id = ? / SELECT * FROM profiles WHERE id = ?
@@ -139,7 +141,8 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = supabaseAdmin;
+    const hasServiceKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY);
+    const supabase = hasServiceKey ? supabaseAdmin : await getServerSupabase();
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // Transactions and Pragma settings
