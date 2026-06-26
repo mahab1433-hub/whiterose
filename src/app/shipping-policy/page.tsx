@@ -120,8 +120,8 @@ export default function ShippingPolicy() {
                   <ShieldCheck size={18} className="text-accent-pink" />
                   <h3 className="text-lg m-0">4. Damaged Items</h3>
                 </div>
-                <p>
-                  If you receive a package that shows signs of tampering or damage, please do not accept the delivery and contact us immediately at <Link href="mailto:gayathrirose1726@gmail.com" className="text-white hover:text-accent-pink underline decoration-accent-pink/30">gayathrirose1726@gmail.com</Link> or call <span className="text-white">+91 82488 50912</span>.
+                 <p>
+                  If you receive a package that shows signs of tampering or damage, please do not accept the delivery and contact us immediately at <Link href="mailto:support.whiterosebeautyparlour@gmail.com" className="text-white hover:text-accent-pink underline decoration-accent-pink/30">support.whiterosebeautyparlour@gmail.com</Link>.
                 </p>
               </section>
             </div>
