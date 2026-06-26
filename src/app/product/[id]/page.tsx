@@ -51,9 +51,14 @@ const ProductDetails = () => {
   }
 
   const handleAddToCart = () => {
-    // Basic logic for quantity would need store update, for now we just add
-    addItem(product);
-    toast.success(`${product.name} added to cart!`);
+    addItem(product, quantity);
+    toast.success(`${quantity} ${product.name} added to cart!`);
+  };
+
+  const handleBuyNow = () => {
+    addItem(product, quantity);
+    toast.success(`Proceeding to checkout...`);
+    router.push('/checkout');
   };
 
   return (
@@ -130,31 +135,40 @@ const ProductDetails = () => {
 
             {/* Actions */}
             <div className="mt-12 space-y-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center border border-white/10 h-14">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center border border-white/10 h-14">
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-12 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center text-sm">{quantity}</span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-12 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
                   <button 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-white text-black h-14 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink hover:text-black transition-all flex items-center justify-center space-x-3"
                   >
-                    -
+                    <ShoppingBag size={18} />
+                    <span>Add to Bag</span>
                   </button>
-                  <span className="w-12 text-center text-sm">{quantity}</span>
-                  <button 
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-12 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
-                  >
-                    +
+                  <button className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all">
+                    <Heart size={20} />
                   </button>
                 </div>
+
                 <button 
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-white text-black h-14 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-3"
+                  onClick={handleBuyNow}
+                  className="w-full bg-accent-pink text-black h-14 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center space-x-3 font-bold"
                 >
-                  <ShoppingBag size={18} />
-                  <span>Add to Shopping Bag</span>
-                </button>
-                <button className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all">
-                  <Heart size={20} />
+                  <span>Buy It Now</span>
                 </button>
               </div>
 
