@@ -8,7 +8,7 @@ export default async function Home() {
   const featuredProducts = await getFeaturedProductsServer();
 
   const featuredCategories = [
-    { name: "Makeup", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=2087&auto=format&fit=crop", count: 12 },
+    { name: "Makeup", image: "/products/makeup.jpeg", count: 12 },
     { name: "Skincare", image: "/products/Hydra-gel.webp", count: 8 },
     { name: "Hair Care", image: "/products/shinol-hair-oil.jpeg", count: 15 },
   ];
