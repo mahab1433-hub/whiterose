@@ -288,6 +288,27 @@ class SupabaseUserDb {
       return { changes: 1 };
     }
 
+    // 11. UPDATE profiles
+    if (trimmed.startsWith('UPDATE profiles SET')) {
+      const [name, email, phone, role, id] = params;
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name, email, phone, role })
+        .eq('id', id);
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
+    // 12. INSERT INTO profiles
+    if (trimmed.startsWith('INSERT INTO profiles')) {
+      const [id, name, email, phone, role] = params;
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({ id, name, email, phone, role }, { onConflict: 'id' });
+      if (error) throw error;
+      return { changes: 1 };
+    }
+
     console.warn('Unhandled SQL query in run():', query, params);
     return { changes: 0 };
   }
