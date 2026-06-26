@@ -10,7 +10,7 @@ export default async function Home() {
   const featuredCategories = [
     { name: "Makeup", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=2087&auto=format&fit=crop", count: 12 },
     { name: "Skincare", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1974&auto=format&fit=crop", count: 8 },
-    { name: "Hair Care", image: "/products/shinol-hair-oil.jpeg", count: 15 },
+    { name: "Hair Care", image: "/products/herbal-oil.jpeg", count: 15 },
   ];
 
   return (
