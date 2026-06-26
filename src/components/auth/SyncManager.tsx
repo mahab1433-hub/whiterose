@@ -16,13 +16,32 @@ export default function SyncManager() {
 
     const syncData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
+      const localCartOwner = useCart.getState().ownerId;
+      const localWishlistOwner = useWishlist.getState().ownerId;
+
       if (!session) {
+        if (localCartOwner !== null) {
+          useCart.getState().clearCart();
+        }
+        if (localWishlistOwner !== null) {
+          useWishlist.getState().setWishlist([]);
+          useWishlist.getState().setOwnerId(null);
+        }
         isInitializedRef.current = true;
         return;
       }
 
       try {
-        // 1. Sync & merge wishlist and cart IDs
+        // If local cart belongs to another user, clear it
+        if (localCartOwner && localCartOwner !== session.user.id) {
+          useCart.getState().clearCart();
+        }
+        if (localWishlistOwner && localWishlistOwner !== session.user.id) {
+          useWishlist.getState().setWishlist([]);
+          useWishlist.getState().setOwnerId(null);
+        }
+
         const currentLocalCart = useCart.getState().items;
         const currentLocalWishlist = useWishlist.getState().wishlistIds;
 
@@ -46,6 +65,7 @@ export default function SyncManager() {
           const data = await syncRes.json();
           if (data.wishlist) {
             setWishlist(data.wishlist);
+            useWishlist.getState().setOwnerId(session.user.id);
           }
           
           // 2. Fetch fully populated cart items from server
@@ -57,6 +77,7 @@ export default function SyncManager() {
           if (cartRes.ok) {
             const serverCart = await cartRes.json();
             setItems(serverCart);
+            useCart.getState().setOwnerId(session.user.id);
           }
         }
       } catch (err) {
@@ -74,8 +95,9 @@ export default function SyncManager() {
         syncData();
       } else if (event === 'SIGNED_OUT') {
         isInitializedRef.current = false;
-        setItems([]);
-        setWishlist([]);
+        useCart.getState().clearCart();
+        useWishlist.getState().setWishlist([]);
+        useWishlist.getState().setOwnerId(null);
       }
     });
 
