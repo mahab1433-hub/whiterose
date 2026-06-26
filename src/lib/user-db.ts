@@ -1,13 +1,14 @@
 import { getServerSupabase, getAuthenticatedUser, isUserAdmin } from './auth';
+import { supabaseAdmin } from './supabase-server';
 
 /**
  * Mock SQLite interface that translates SQL queries to Supabase API calls.
  * Enforces security by binding all operations to the authenticated user's ID.
  */
 class SupabaseUserDb {
-  private userId: string;
+  private userId: string | null;
 
-  constructor(userId: string) {
+  constructor(userId: string | null) {
     this.userId = userId;
   }
 
@@ -15,7 +16,7 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = await getServerSupabase();
+    const supabase = supabaseAdmin;
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // 1. SELECT product_id, quantity FROM cart_items
@@ -97,7 +98,7 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = await getServerSupabase();
+    const supabase = supabaseAdmin;
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // 1. SELECT name, email, phone, role FROM profiles WHERE id = ? / SELECT * FROM profiles WHERE id = ?
@@ -138,7 +139,7 @@ class SupabaseUserDb {
     if (params !== undefined && params !== null && !Array.isArray(params)) {
       params = [params];
     }
-    const supabase = await getServerSupabase();
+    const supabase = supabaseAdmin;
     const trimmed = query.trim().replace(/\s+/g, ' ');
 
     // Transactions and Pragma settings
@@ -325,7 +326,7 @@ class SupabaseUserDb {
 /**
  * Open or create a user's isolated database session
  */
-export async function openUserDb(userId: string): Promise<any> {
+export async function openUserDb(userId: string | null): Promise<any> {
   return new SupabaseUserDb(userId);
 }
 

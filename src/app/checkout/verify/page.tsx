@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/store';
 import { Loader2, CheckCircle2, XCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
 
 function VerifyContent() {
   const router = useRouter();
@@ -13,31 +14,49 @@ function VerifyContent() {
 
   const [status, setStatus] = useState<'verifying' | 'success' | 'failed'>('verifying');
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [verifiedOrderId, setVerifiedOrderId] = useState<string>('');
 
-  const orderId = searchParams.get('order_id');
   const paymentId = searchParams.get('razorpay_payment_id');
   const razorpayOrderId = searchParams.get('razorpay_order_id');
   const signature = searchParams.get('razorpay_signature');
 
   useEffect(() => {
-    if (!orderId || !paymentId || !razorpayOrderId) {
+    if (!paymentId || !razorpayOrderId) {
       setStatus('failed');
       setErrorMsg('Missing checkout session credentials.');
       return;
     }
 
+    const pendingOrderStr = sessionStorage.getItem('pending_order_details');
+    if (!pendingOrderStr) {
+      setStatus('failed');
+      setErrorMsg('Missing checkout order items context. Please contact support.');
+      return;
+    }
+
     const verifyPayment = async () => {
       try {
+        const pendingOrder = JSON.parse(pendingOrderStr);
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+
         const response = await fetch('/api/razorpay/verify', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
-            orderId,
             razorpayPaymentId: paymentId,
             razorpayOrderId,
             razorpaySignature: signature || 'mock_signature',
+            totalAmount: pendingOrder.totalAmount,
+            shippingAddress: pendingOrder.shippingAddress,
+            items: pendingOrder.items,
           }),
         });
 
@@ -45,6 +64,8 @@ function VerifyContent() {
 
         if (response.ok && data.success) {
           clearCart();
+          setVerifiedOrderId(data.orderId);
+          sessionStorage.removeItem('pending_order_details');
           setStatus('success');
         } else {
           setStatus('failed');
@@ -63,7 +84,7 @@ function VerifyContent() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [orderId, paymentId, razorpayOrderId, signature, clearCart]);
+  }, [paymentId, razorpayOrderId, signature, clearCart]);
 
   return (
     <div className="min-h-screen bg-black pt-40 pb-24 px-6 flex flex-col items-center justify-center">
@@ -110,16 +131,16 @@ function VerifyContent() {
               </p>
             </div>
 
-            {orderId && (
+            {verifiedOrderId && (
               <div className="py-4 border-y border-white/5">
                 <p className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Order Reference</p>
-                <p className="font-mono text-white text-sm">WRB-{orderId.substring(0, 8).toUpperCase()}</p>
+                <p className="font-mono text-white text-sm">WRB-{verifiedOrderId.substring(0, 8).toUpperCase()}</p>
               </div>
             )}
 
             <div className="pt-2">
               <Link 
-                href={`/checkout/success?id=${orderId}`}
+                href={`/checkout/success?id=${verifiedOrderId}`}
                 className="w-full py-4 bg-white !text-black hover:bg-accent-pink hover:!text-white transition-all flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest font-bold"
               >
                 <span>View My Order Invoice</span>

@@ -5,6 +5,12 @@ const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsIn
 
 export const supabaseServer = createClient(url, key);
 
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
+if (!serviceKey) {
+  console.warn('⚠️ WARNING: SUPABASE_SERVICE_ROLE_KEY is not defined. Falling back to ANON_KEY which is subject to RLS policy limits.');
+}
+export const supabaseAdmin = createClient(url, serviceKey || key);
+
 export const getProductsServer = async (includeInactive = false) => {
   let query = supabaseServer
     .from('products')

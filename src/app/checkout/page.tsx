@@ -103,45 +103,26 @@ const CheckoutContent = () => {
           toast.success('Payment is successful');
           
           try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const currentUserId = session?.user?.id;
-
-            if (!currentUserId || !session) {
-              throw new Error('User not authenticated. Please contact support with payment ID: ' + response.razorpay_payment_id);
-            }
-
-            const orderRes = await fetch('/api/user/orders', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                totalAmount: finalTotal,
-                paymentId: response.razorpay_payment_id,
-                paymentStatus: 'pending',
-                shippingAddress: { ...formData, shipping_fee: shippingFee },
-                items: items.map(item => ({
-                  productId: item.id,
-                  quantity: item.quantity,
-                  price: item.price
-                }))
-              })
-            });
-
-            if (!orderRes.ok) {
-              const errData = await orderRes.json();
-              throw new Error(errData.error || 'Order saving failed');
-            }
-
-            const { order } = await orderRes.json();
+            // Save order details to sessionStorage for retrieval on the verify page
+            const pendingOrder = {
+              totalAmount: finalTotal,
+              shippingAddress: { ...formData, shipping_fee: shippingFee },
+              items: items.map(item => ({
+                productId: item.id,
+                quantity: item.quantity,
+                price: item.price
+              }))
+            };
+            
+            sessionStorage.setItem('pending_order_details', JSON.stringify(pendingOrder));
 
             // Redirect to secure verification page
             router.push(
-              `/checkout/verify?order_id=${order.id}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`
+              `/checkout/verify?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`
             );
           } catch (err: any) {
-            console.error('CRITICAL ORDER INSERTION ERROR:', err);
-            toast.error('Order saving failed: ' + (err.message || 'Unknown error') + '. Please contact support with Payment ID: ' + response.razorpay_payment_id);
+            console.error('CRITICAL ORDER CACHING ERROR:', err);
+            toast.error('Failed to initialize verification: ' + (err.message || 'Unknown error') + '. Please contact support with Payment ID: ' + response.razorpay_payment_id);
           }
         },
         prefill: {
