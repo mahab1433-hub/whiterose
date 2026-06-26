@@ -62,7 +62,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 bg-black min-h-screen">
+    <div className="pt-32 pb-36 lg:pb-24 bg-black min-h-screen">
       <div className="container mx-auto px-6">
         {/* Breadcrumbs */}
         <div className="flex items-center space-x-2 text-[10px] uppercase tracking-widest text-zinc-500 mb-12">
@@ -181,6 +181,29 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Sticky Mobile Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-zinc-950/95 backdrop-blur-md border-t border-white/10 p-4 px-6 flex items-center justify-between space-x-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div className="flex flex-col justify-center min-w-0">
+          <span className="text-[9px] uppercase tracking-widest text-zinc-500 truncate">{product.category}</span>
+          <span className="text-xs font-serif uppercase text-white truncate max-w-[120px]">{product.name}</span>
+          <span className="text-xs text-accent-pink mt-0.5 font-sans font-bold">₹{product.price}</span>
+        </div>
+        <div className="flex items-center space-x-2 flex-1 justify-end">
+          <button 
+            onClick={handleAddToCart}
+            className="flex-1 max-w-[120px] bg-zinc-900 border border-white/10 text-white h-11 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center justify-center"
+          >
+            Add to Bag
+          </button>
+          <button 
+            onClick={handleBuyNow}
+            className="flex-1 max-w-[140px] bg-accent-pink text-black h-11 text-[10px] font-bold uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center"
+          >
+            Buy Now
+          </button>
         </div>
       </div>
     </div>
