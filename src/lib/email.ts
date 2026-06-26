@@ -154,14 +154,18 @@ export async function sendOrderConfirmationEmail(
 
   try {
     const resend = getResend();
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
       to: [customerEmail],
       subject: `Order Confirmed - #${orderId.substring(0, 8).toUpperCase()}`,
       html: htmlContent
     });
-  } catch (error) {
+    if (error) {
+      throw error;
+    }
+  } catch (error: any) {
     console.error('Resend error sending customer email:', error);
+    throw error;
   }
 }
 
@@ -298,13 +302,17 @@ export async function sendAdminOrderNotificationEmail(
 
   try {
     const resend = getResend();
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
       to: ADMIN_EMAILS,
       subject: `[ALERT] New Order Received - ₹${totalAmount} (#${orderId.substring(0, 8).toUpperCase()})`,
       html: htmlContent
     });
-  } catch (error) {
+    if (error) {
+      throw error;
+    }
+  } catch (error: any) {
     console.error('Resend error sending admin notification email:', error);
+    throw error;
   }
 }
