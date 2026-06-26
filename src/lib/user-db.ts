@@ -334,7 +334,7 @@ export async function openUserDb(userId: string | null): Promise<any> {
  * Aggregates all orders across the database for the admin panel
  */
 export async function adminGetAllOrders(): Promise<any[]> {
-  const supabase = await getServerSupabase();
+  const supabase = supabaseAdmin;
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
     .select('*, profiles(*), order_items(*)')
@@ -362,7 +362,7 @@ export async function adminGetAllOrders(): Promise<any[]> {
  * Updates status of an order
  */
 export async function adminUpdateOrderStatus(orderId: string, status: string): Promise<boolean> {
-  const supabase = await getServerSupabase();
+  const supabase = supabaseAdmin;
   const { error } = await supabase
     .from('orders')
     .update({ status })
@@ -374,7 +374,7 @@ export async function adminUpdateOrderStatus(orderId: string, status: string): P
  * Deletes an order
  */
 export async function adminDeleteOrder(orderId: string): Promise<boolean> {
-  const supabase = await getServerSupabase();
+  const supabase = supabaseAdmin;
   const { error } = await supabase
     .from('orders')
     .delete()
@@ -386,7 +386,7 @@ export async function adminDeleteOrder(orderId: string): Promise<boolean> {
  * Aggregates all customers across the database for the admin panel
  */
 export async function adminGetAllCustomers(): Promise<any[]> {
-  const supabase = await getServerSupabase();
+  const supabase = supabaseAdmin;
   const { data: profiles, error } = await supabase
     .from('profiles')
     .select('*')
@@ -404,7 +404,7 @@ export async function adminGetAllCustomers(): Promise<any[]> {
  * Aggregates dashboard metrics (revenue, order count, user count)
  */
 export async function adminGetMetrics(): Promise<any> {
-  const supabase = await getServerSupabase();
+  const supabase = supabaseAdmin;
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
     .select('total_amount, status');
