@@ -192,7 +192,7 @@ export default function FAQs() {
             
             <div className="flex flex-wrap justify-center gap-4">
               <a 
-                href="tel:+918248850912"
+                href="tel:+919786030663"
                 className="flex items-center space-x-3 px-8 py-4 border border-white/10 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all"
               >
                 <Phone size={14} />

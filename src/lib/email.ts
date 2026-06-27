@@ -141,7 +141,7 @@ export async function sendOrderConfirmationEmail(
                   <td align="center" style="padding: 30px 40px; background-color: #030303; border-top: 1px solid #111; font-size: 10px; color: #555555; text-transform: uppercase; letter-spacing: 2px; line-height: 1.8;">
                     <p style="margin: 0 0 8px; color: #888888;">White Rose Luxury Studio</p>
                     <p style="margin: 0 0 8px;">123, Luxury Lane, Rajapalayam, Tamil Nadu</p>
-                    <p style="margin: 0;">support: +91 82488 50912 | gayathrirose1726@gmail.com</p>
+                    <p style="margin: 0;">email: support.whiterosebeautyparlour@gmail.com</p>
                   </td>
                 </tr>
               </table>

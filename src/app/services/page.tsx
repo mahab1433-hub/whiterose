@@ -198,7 +198,8 @@ const ServicesPage = () => {
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold">Call Us</h4>
               </div>
               <p className="text-xs text-zinc-400 font-light leading-relaxed tracking-wider">
-                <Link href="tel:+918248850912" className="hover:text-white transition-colors">+91 82488 50912</Link><br />
+                <Link href="tel:+919786030663" className="hover:text-white transition-colors">+91 97860 30663</Link><br />
+                <Link href="tel:+918825783644" className="hover:text-white transition-colors">+91 88257 83644</Link><br />
                 Available 10:00 AM - 08:00 PM
               </p>
             </div>
@@ -209,7 +210,7 @@ const ServicesPage = () => {
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold">Email Us</h4>
               </div>
               <p className="text-xs text-zinc-400 font-light leading-relaxed tracking-wider">
-                <Link href="mailto:gayathrirose1726@gmail.com" className="hover:text-white transition-colors">gayathrirose1726@gmail.com</Link>
+                <Link href="mailto:support.whiterosebeautyparlour@gmail.com" className="hover:text-white transition-colors">support.whiterosebeautyparlour@gmail.com</Link>
               </p>
             </div>
           </div>
