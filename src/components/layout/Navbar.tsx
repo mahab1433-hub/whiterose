@@ -19,7 +19,7 @@ const Navbar = () => {
   const { totalItems, clearCart } = useCart();
   const pathname = usePathname();
   const router = useRouter();
-  const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
+  const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com', 'support.whiterosebeautyparlour@gmail.com'];
 
   useEffect(() => {
     setMounted(true);

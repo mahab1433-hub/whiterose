@@ -33,7 +33,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     const checkAdminStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
-      const adminEmails = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
+      const adminEmails = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com', 'support.whiterosebeautyparlour@gmail.com'];
       
       if (!user || !user.email || !adminEmails.includes(user.email)) {
         router.push('/');

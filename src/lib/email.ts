@@ -9,7 +9,7 @@ function getResend() {
 }
 
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'White Rose <orders@whiterosekeysoulcosmatics.com>';
-const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com'];
+const ADMIN_EMAILS = ['mahab1433@gmail.com', 'babutmuthumari@gmail.com', 'gayathrirose1726@gmail.com', 'support.whiterosebeautyparlour@gmail.com'];
 
 export interface EmailOrderItem {
   name: string;
