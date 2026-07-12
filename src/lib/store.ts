@@ -71,6 +71,16 @@ export const useCart = create<CartStore>()(
     }),
     {
       name: 'cart-storage',
+      partialize: (state) => ({
+        ...state,
+        items: state.items.map(item => ({
+          ...item,
+          description: undefined,
+          images: undefined,
+          // Do not store massive base64 images in localStorage to avoid QuotaExceededError
+          image_url: item.image_url?.startsWith('data:image') ? undefined : item.image_url
+        }))
+      })
     }
   )
 );

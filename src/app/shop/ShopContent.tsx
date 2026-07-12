@@ -53,18 +53,21 @@ const ShopContent = ({ initialProducts }: ShopContentProps) => {
 
         {/* Filters & Search */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12 border-y border-white/5 py-8">
-          <div className="hidden lg:flex items-center space-x-8">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`text-[10px] uppercase tracking-[0.2em] transition-all pb-1 border-b ${
-                  selectedCategory === cat ? 'text-white border-white' : 'text-zinc-500 border-transparent hover:text-white'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          
+          <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+            <div className="flex items-center space-x-6 lg:space-x-8 min-w-max">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`text-[10px] uppercase tracking-[0.2em] transition-all pb-1 border-b ${
+                    selectedCategory === cat ? 'text-white border-white' : 'text-zinc-500 border-transparent hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="relative w-full lg:w-96">
@@ -78,15 +81,7 @@ const ShopContent = ({ initialProducts }: ShopContentProps) => {
             />
           </div>
 
-          <div className="flex items-center justify-between w-full lg:w-auto space-x-6">
-            <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="lg:hidden flex items-center space-x-2 text-[10px] uppercase tracking-widest"
-            >
-              <SlidersHorizontal size={14} />
-              <span>Filters</span>
-            </button>
-
+          <div className="flex items-center justify-end w-full lg:w-auto">
             <div className="flex items-center space-x-2 border-b border-white/10 pb-2">
               <span className="text-[10px] uppercase tracking-widest text-zinc-500">Sort By:</span>
               <select
@@ -101,34 +96,6 @@ const ShopContent = ({ initialProducts }: ShopContentProps) => {
             </div>
           </div>
         </div>
-
-        <AnimatePresence>
-          {isFilterOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden mb-8 overflow-hidden"
-            >
-              <div className="flex flex-wrap gap-4 py-4">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setIsFilterOpen(false);
-                    }}
-                    className={`px-6 py-2 border text-[10px] uppercase tracking-widest transition-all ${
-                      selectedCategory === cat ? 'bg-white text-black border-white' : 'border-white/10 text-zinc-400'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
           {filteredProducts.length > 0 ? (
