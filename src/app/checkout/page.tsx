@@ -5,13 +5,13 @@ import { useCart } from '@/lib/store';
 import { createClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { Lock, ChevronRight, CreditCard, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Lock, ChevronRight, CreditCard, ShieldCheck, CheckCircle, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 const CheckoutContent = () => {
   const [hasHydrated, setHasHydrated] = useState(false);
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, updateQuantity, removeItem } = useCart();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const total = totalPrice();
@@ -32,6 +32,30 @@ const CheckoutContent = () => {
       }
     }
   }, [mode]);
+
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      handleDeleteItem(id);
+      return;
+    }
+
+    if (mode === 'buynow' && buyNowItem && buyNowItem.id === id) {
+      const updatedItem = { ...buyNowItem, quantity: newQuantity };
+      setBuyNowItem(updatedItem);
+      sessionStorage.setItem('buyNowItem', JSON.stringify(updatedItem));
+    } else {
+      updateQuantity(id, newQuantity);
+    }
+  };
+
+  const handleDeleteItem = (id: string) => {
+    if (mode === 'buynow' && buyNowItem && buyNowItem.id === id) {
+      setBuyNowItem(null);
+      sessionStorage.removeItem('buyNowItem');
+    } else {
+      removeItem(id);
+    }
+  };
 
   const displayItems = mode === 'buynow' && buyNowItem ? [buyNowItem] : items;
   const displayTotal = mode === 'buynow' && buyNowItem ? buyNowItem.price * buyNowItem.quantity : total;
@@ -218,9 +242,35 @@ const CheckoutContent = () => {
                           )}
                         </div>
                         <span className="truncate w-32 group-hover:text-accent-pink transition-colors">{item.name}</span>
-                        <span className="text-zinc-500 font-sans">x{item.quantity}</span>
+                        <div className="flex items-center border border-white/10 rounded-sm ml-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            -
+                          </button>
+                          <span className="w-4 text-center font-sans text-[10px]">{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <span className="font-sans">₹{item.price * item.quantity}</span>
+                      <div className="flex items-center space-x-4">
+                        <span className="font-sans">₹{item.price * item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="text-zinc-500 hover:text-red-500 transition-colors p-1"
+                          title="Remove Item"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
