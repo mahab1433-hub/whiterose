@@ -38,10 +38,14 @@ export async function POST(request: Request) {
     if (Array.isArray(localWishlist)) {
       for (const prodId of localWishlist) {
         if (!dbWishlistIds.includes(prodId)) {
-          await db.run(
-            'INSERT INTO wishlist (product_id) VALUES (?) ON CONFLICT(product_id) DO NOTHING',
-            [prodId]
-          );
+          try {
+            await db.run(
+              'INSERT INTO wishlist (product_id) VALUES (?) ON CONFLICT(product_id) DO NOTHING',
+              [prodId]
+            );
+          } catch (e) {
+            console.warn(`Could not sync wishlist item ${prodId} - likely deleted product.`, e);
+          }
         }
       }
     }
@@ -56,18 +60,22 @@ export async function POST(request: Request) {
     if (Array.isArray(localCart)) {
       for (const item of localCart) {
         const dbItem = dbCart.find((c: any) => c.product_id === item.id);
-        if (dbItem) {
-          // If exists in both, use the max or sum. Let's use max for safety/logical sense
-          const newQty = Math.max(dbItem.quantity, item.quantity);
-          await db.run(
-            'UPDATE cart_items SET quantity = ? WHERE product_id = ?',
-            [newQty, item.id]
-          );
-        } else {
-          await db.run(
-            'INSERT INTO cart_items (product_id, quantity) VALUES (?, ?) ON CONFLICT(product_id) DO NOTHING',
-            [item.id, item.quantity]
-          );
+        try {
+          if (dbItem) {
+            // If exists in both, use the max or sum. Let's use max for safety/logical sense
+            const newQty = Math.max(dbItem.quantity, item.quantity);
+            await db.run(
+              'UPDATE cart_items SET quantity = ? WHERE product_id = ?',
+              [newQty, item.id]
+            );
+          } else {
+            await db.run(
+              'INSERT INTO cart_items (product_id, quantity) VALUES (?, ?) ON CONFLICT(product_id) DO NOTHING',
+              [item.id, item.quantity]
+            );
+          }
+        } catch (e) {
+          console.warn(`Could not sync cart item ${item.id} - likely deleted product.`, e);
         }
       }
     }
@@ -84,6 +92,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Error syncing user data:', error);
+    require('fs').writeFileSync('sync-error.log', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

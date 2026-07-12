@@ -60,9 +60,9 @@ const ProductDetails = () => {
 
   const handleBuyNow = () => {
     if (product.stock === 0) return;
-    addItem(product, quantity);
+    sessionStorage.setItem('buyNowItem', JSON.stringify({ ...product, quantity }));
     toast.success(`Proceeding to checkout...`);
-    router.push('/checkout');
+    router.push('/checkout?mode=buynow');
   };
 
   const imagesList = product.images && product.images.length > 0 

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Lock, ChevronRight, CreditCard, ShieldCheck, CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 const CheckoutContent = () => {
@@ -20,6 +20,22 @@ const CheckoutContent = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState('');
   
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode');
+  const [buyNowItem, setBuyNowItem] = useState<any>(null);
+
+  useEffect(() => {
+    if (mode === 'buynow') {
+      const item = sessionStorage.getItem('buyNowItem');
+      if (item) {
+        setBuyNowItem(JSON.parse(item));
+      }
+    }
+  }, [mode]);
+
+  const displayItems = mode === 'buynow' && buyNowItem ? [buyNowItem] : items;
+  const displayTotal = mode === 'buynow' && buyNowItem ? buyNowItem.price * buyNowItem.quantity : total;
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,7 +46,7 @@ const CheckoutContent = () => {
   });
 
   const shippingFee = 0;
-  const finalTotal = total;
+  const finalTotal = displayTotal;
 
 
   useEffect(() => {
@@ -68,7 +84,7 @@ const CheckoutContent = () => {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (items.length === 0) return toast.error('Your cart is empty');
+    if (displayItems.length === 0) return toast.error('Your cart is empty');
     
     setLoading(true);
     const scriptLoaded = await loadRazorpay();
@@ -104,15 +120,15 @@ const CheckoutContent = () => {
           
           try {
             // Save order details to sessionStorage for retrieval on the verify page
-            const pendingOrder = {
-              totalAmount: finalTotal,
-              shippingAddress: { ...formData, shipping_fee: shippingFee },
-              items: items.map(item => ({
-                productId: item.id,
-                quantity: item.quantity,
-                price: item.price
-              }))
-            };
+              const pendingOrder = {
+                totalAmount: finalTotal,
+                shippingAddress: { ...formData, shipping_fee: shippingFee },
+                items: displayItems.map(item => ({
+                  productId: item.id,
+                  quantity: item.quantity,
+                  price: item.price
+                }))
+              };
             
             sessionStorage.setItem('pending_order_details', JSON.stringify(pendingOrder));
 
@@ -170,7 +186,7 @@ const CheckoutContent = () => {
                   <ShieldCheck size={14} />
                   <span>Secure Payment via Razorpay</span>
                 </div>
-                <button disabled={loading || items.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
+                <button disabled={loading || displayItems.length === 0} className="w-full bg-white !text-black py-6 text-xs font-bold uppercase tracking-[0.3em] hover:bg-accent-pink transition-all flex items-center justify-center space-x-4">
                   <Lock size={16} className="!text-black" />
                   <span className="!text-black">{loading ? 'Processing...' : `Pay ₹${finalTotal} Now`}</span>
                 </button>
@@ -181,7 +197,7 @@ const CheckoutContent = () => {
             <div className="bg-zinc-950 border border-white/5 p-8 space-y-8 sticky top-32">
               <h3 className="text-xl font-serif uppercase tracking-widest">Order Summary</h3>
               <div className="space-y-4">
-                {items.map((item) => {
+                {displayItems.map((item) => {
                   const latestImage = item.image_url;
                   
                   return (
@@ -211,7 +227,7 @@ const CheckoutContent = () => {
                 <div className="border-t border-white/5 pt-4 space-y-2">
                   <div className="flex justify-between text-[10px] uppercase tracking-wider text-zinc-500">
                     <span>Subtotal</span>
-                    <span className="font-sans">₹{total}</span>
+                    <span className="font-sans">₹{displayTotal}</span>
                   </div>
                   <div className="flex justify-between text-[10px] uppercase tracking-wider text-zinc-500">
                     <span>Shipping</span>

@@ -14,7 +14,13 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const isFavorite = isInWishlist(product.id);
+  const [hasHydrated, setHasHydrated] = React.useState(false);
+  
+  React.useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  const isFavorite = hasHydrated ? isInWishlist(product.id) : false;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

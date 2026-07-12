@@ -23,20 +23,7 @@ const ShopContent = ({ initialProducts }: ShopContentProps) => {
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchLatestProducts = async () => {
-      try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          setProducts(data);
-        }
-      } catch (err) {
-        console.error('Error fetching latest products:', err);
-      }
-    };
-    fetchLatestProducts();
-  }, []);
+  // Removed redundant client-side fetch to speed up rendering
 
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || 'All');

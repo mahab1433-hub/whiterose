@@ -1,0 +1,6 @@
+{
+  "code": "23503",
+  "details": "Key is not present in table \"products\".",
+  "hint": null,
+  "message": "insert or update on table \"wishlist\" violates foreign key constraint \"wishlist_product_id_fkey\""
+}
