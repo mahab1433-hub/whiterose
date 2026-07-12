@@ -57,8 +57,8 @@ const CheckoutContent = () => {
     }
   };
 
-  const displayItems = mode === 'buynow' && buyNowItem ? [buyNowItem] : items;
-  const displayTotal = mode === 'buynow' && buyNowItem ? buyNowItem.price * buyNowItem.quantity : total;
+  const displayItems = mode === 'buynow' ? (buyNowItem ? [buyNowItem] : []) : items;
+  const displayTotal = mode === 'buynow' ? (buyNowItem ? buyNowItem.price * buyNowItem.quantity : 0) : total;
   
   const [formData, setFormData] = useState({
     name: '',
