@@ -35,11 +35,12 @@ export async function getServerSupabase() {
   });
 
   if (token) {
-    // Standard and robust way to authenticate the client using the Bearer token
-    await client.auth.setSession({
+    // Avoid setting an empty refresh token as it might throw or fail validation
+    const { error } = await client.auth.setSession({
       access_token: token,
-      refresh_token: ''
+      refresh_token: 'dummy_refresh_token_to_bypass_validation'
     });
+    if (error) console.error('setSession error:', error);
   }
 
   return client;
@@ -47,12 +48,22 @@ export async function getServerSupabase() {
 
 export async function getAuthenticatedUser() {
   try {
+    const headersList = await headers();
+    const authHeader = headersList.get('Authorization');
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
+
     const supabase = await getServerSupabase();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return null;
+    const { data: { user }, error } = token 
+      ? await supabase.auth.getUser(token) 
+      : await supabase.auth.getUser();
+      
+    if (error || !user) {
+      console.error('getAuthenticatedUser check failed:', error);
+      return null;
+    }
     return user;
   } catch (e) {
-    console.error('getAuthenticatedUser error:', e);
+    console.error('getAuthenticatedUser exception:', e);
     return null;
   }
 }
