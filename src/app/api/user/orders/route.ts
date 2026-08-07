@@ -11,26 +11,39 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const db = await openUserDb(user.id);
-    const orders = await db.all('SELECT * FROM orders ORDER BY created_at DESC');
+    const { getServerSupabase } = await import('@/lib/auth');
+    const supabase = await getServerSupabase();
     
-    const resultOrders = [];
-    for (const order of orders) {
-      const orderItems = await db.all('SELECT * FROM order_items WHERE order_id = ?', order.id);
-      
-      // Fetch product details for these items
-      const productIds = orderItems.map((item: any) => item.product_id);
-      let products: any[] = [];
-      if (productIds.length > 0) {
-        const { data } = await supabaseServer
-          .from('products')
-          .select('*')
-          .in('id', productIds);
-        products = data || [];
-      }
+    // 1. Fetch all orders and their items for the user in ONE query
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-      // Map order items to include product metadata matching client expectations
-      const populatedItems = orderItems.map((item: any) => {
+    if (error) throw error;
+
+    // 2. Extract all unique product IDs across all orders
+    const productIds = new Set<string>();
+    (orders || []).forEach(order => {
+      (order.order_items || []).forEach((item: any) => {
+        if (item.product_id) productIds.add(item.product_id);
+      });
+    });
+
+    // 3. Fetch all products in ONE query
+    let products: any[] = [];
+    if (productIds.size > 0) {
+      const { data: productsData } = await supabaseServer
+        .from('products')
+        .select('*')
+        .in('id', Array.from(productIds));
+      products = productsData || [];
+    }
+
+    // 4. Map the results
+    const resultOrders = (orders || []).map(order => {
+      const populatedItems = (order.order_items || []).map((item: any) => {
         const product = products.find((p: any) => p.id === item.product_id);
         const imgUrl = product?.image_url || '';
         const imagesList = product?.images || (imgUrl ? [imgUrl] : []);
@@ -47,23 +60,21 @@ export async function GET() {
         };
       });
 
-      let shippingAddressParsed = null;
-      if (order.shipping_address) {
+      let shippingAddressParsed = order.shipping_address;
+      if (typeof order.shipping_address === 'string') {
         try {
           shippingAddressParsed = JSON.parse(order.shipping_address);
         } catch (e) {
-          shippingAddressParsed = order.shipping_address;
+          shippingAddressParsed = {};
         }
       }
 
-      resultOrders.push({
+      return {
         ...order,
         shipping_address: shippingAddressParsed,
         order_items: populatedItems
-      });
-    }
-
-    await db.close();
+      };
+    });
 
     return NextResponse.json(resultOrders);
   } catch (error: any) {
