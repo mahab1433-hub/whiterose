@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { openUserDb } from '@/lib/user-db';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   console.log('[Webhook API] --- Razorpay Webhook Received ---');
@@ -55,6 +57,40 @@ export async function POST(req: Request) {
                [razorpayPaymentId, pendingOrder.id]
              );
              console.log(`[Webhook API] SUCCESS: Updated pending order ${pendingOrder.id} to paid!`);
+             
+             // Send emails
+             if (process.env.RESEND_API_KEY) {
+                try {
+                  const order = await db.get('SELECT * FROM orders WHERE id = ?', pendingOrder.id);
+                  const orderItems = await db.all('SELECT * FROM order_items WHERE order_id = ?', pendingOrder.id);
+                  
+                  if (order && orderItems) {
+                    const shippingAddressParsed = JSON.parse(order.shipping_address);
+                    const totalAmount = order.total_amount;
+                    
+                    const productIds = orderItems.map((item: any) => item.product_id);
+                    let products: any[] = [];
+                    if (productIds.length > 0) {
+                      const { data } = await supabaseAdmin.from('products').select('id, name').in('id', productIds);
+                      products = data || [];
+                    }
+                    
+                    const emailItems = orderItems.map((item: any) => {
+                      const product = products.find((p: any) => p.id === item.product_id);
+                      return { name: product?.name || 'Product', quantity: item.quantity, price: item.price };
+                    });
+
+                    const customerEmail = shippingAddressParsed.email || '';
+                    if (customerEmail) {
+                      await sendOrderConfirmationEmail(order.id, customerEmail, totalAmount, emailItems, shippingAddressParsed);
+                    }
+                    await sendAdminOrderNotificationEmail(order.id, totalAmount, emailItems, { ...shippingAddressParsed, email: customerEmail });
+                    console.log(`[Webhook API] Order confirmation emails sent for ${order.id}`);
+                  }
+                } catch (emailErr) {
+                  console.error('[Webhook API] Failed to send emails:', emailErr);
+                }
+             }
           } else {
              console.log(`[Webhook API] Order ${pendingOrder.id} is already processed (status: ${pendingOrder.status}).`);
           }
