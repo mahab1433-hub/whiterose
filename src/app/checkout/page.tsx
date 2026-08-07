@@ -133,6 +133,18 @@ const CheckoutContent = () => {
       const orderData = await response.json();
       if (orderData.error) throw new Error(orderData.error);
 
+      // Save order details to sessionStorage for retrieval on the verify page or check-status
+      const pendingOrder = {
+        totalAmount: finalTotal,
+        shippingAddress: { ...formData, shipping_fee: shippingFee },
+        items: displayItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+      sessionStorage.setItem('pending_order_details', JSON.stringify(pendingOrder));
+
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
@@ -145,19 +157,6 @@ const CheckoutContent = () => {
           toast.success('Payment is successful. Verifying...');
           
           try {
-            // Save order details to sessionStorage for retrieval on the verify page
-              const pendingOrder = {
-                totalAmount: finalTotal,
-                shippingAddress: { ...formData, shipping_fee: shippingFee },
-                items: displayItems.map(item => ({
-                  productId: item.id,
-                  quantity: item.quantity,
-                  price: item.price
-                }))
-              };
-            
-            sessionStorage.setItem('pending_order_details', JSON.stringify(pendingOrder));
-
             // Redirect to secure verification page
             router.push(
               `/checkout/verify?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`
@@ -174,6 +173,47 @@ const CheckoutContent = () => {
           contact: formData.phone,
         },
         theme: { color: '#000000' },
+        modal: {
+          ondismiss: async function () {
+            toast.loading('Checking payment status...', { id: 'status_check' });
+            setVerifyingPayment(true);
+            try {
+              const pendingOrderStr = sessionStorage.getItem('pending_order_details');
+              if (!pendingOrderStr) {
+                toast.dismiss('status_check');
+                setVerifyingPayment(false);
+                return;
+              }
+              const pending = JSON.parse(pendingOrderStr);
+              
+              const checkRes = await fetch('/api/razorpay/check-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpayOrderId: orderData.id,
+                  totalAmount: pending.totalAmount,
+                  shippingAddress: pending.shippingAddress,
+                  items: pending.items
+                })
+              });
+              
+              const checkData = await checkRes.json();
+              toast.dismiss('status_check');
+              
+              if (checkData.success) {
+                toast.success('Payment confirmed!');
+                router.push(`/checkout/success?id=${checkData.orderId}`);
+              } else {
+                setVerifyingPayment(false);
+                // Do not show an error if it was just closed without payment
+              }
+            } catch (err) {
+              toast.dismiss('status_check');
+              setVerifyingPayment(false);
+              console.error('Check status error:', err);
+            }
+          }
+        }
       };
 
       const rzp1 = (window as any).Razorpay(options);
