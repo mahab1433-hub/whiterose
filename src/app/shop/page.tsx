@@ -2,7 +2,8 @@ import React, { Suspense } from 'react';
 import ShopContent from './ShopContent';
 import { getProductsServer } from '@/lib/supabase-server';
 
-export const revalidate = 60; // Cache for 60 seconds for much faster loading
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Prevent caching so prices update immediately
 
 export default async function ShopPage() {
   const products = await getProductsServer();
