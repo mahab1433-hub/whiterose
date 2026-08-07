@@ -345,8 +345,7 @@ export async function openUserDb(userId: string | null): Promise<any> {
  * Aggregates all orders across the database for the admin panel
  */
 export async function adminGetAllOrders(): Promise<any[]> {
-  const supabase = await getServerSupabase();
-  const { data: orders, error: ordersError } = await supabase
+  const { data: orders, error: ordersError } = await supabaseAdmin
     .from('orders')
     .select('*, profiles(*), order_items(*)')
     .order('created_at', { ascending: false });
@@ -373,8 +372,7 @@ export async function adminGetAllOrders(): Promise<any[]> {
  * Updates status of an order
  */
 export async function adminUpdateOrderStatus(orderId: string, status: string): Promise<boolean> {
-  const supabase = await getServerSupabase();
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('orders')
     .update({ status })
     .eq('id', orderId);
@@ -385,8 +383,7 @@ export async function adminUpdateOrderStatus(orderId: string, status: string): P
  * Deletes an order
  */
 export async function adminDeleteOrder(orderId: string): Promise<boolean> {
-  const supabase = await getServerSupabase();
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('orders')
     .delete()
     .eq('id', orderId);
@@ -397,8 +394,7 @@ export async function adminDeleteOrder(orderId: string): Promise<boolean> {
  * Aggregates all customers across the database for the admin panel
  */
 export async function adminGetAllCustomers(): Promise<any[]> {
-  const supabase = await getServerSupabase();
-  const { data: profiles, error } = await supabase
+  const { data: profiles, error } = await supabaseAdmin
     .from('profiles')
     .select('*')
     .neq('role', 'admin')
@@ -415,12 +411,11 @@ export async function adminGetAllCustomers(): Promise<any[]> {
  * Aggregates dashboard metrics (revenue, order count, user count)
  */
 export async function adminGetMetrics(): Promise<any> {
-  const supabase = await getServerSupabase();
-  const { data: orders, error: ordersError } = await supabase
+  const { data: orders, error: ordersError } = await supabaseAdmin
     .from('orders')
     .select('total_amount, status');
 
-  const { count: usersCount, error: usersError } = await supabase
+  const { count: usersCount, error: usersError } = await supabaseAdmin
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .neq('role', 'admin');
