@@ -65,6 +65,27 @@ const ProductDetails = () => {
     router.push('/checkout?mode=buynow');
   };
 
+  const handleShare = async () => {
+    if (!product) return;
+    
+    const shareData = {
+      title: product.name,
+      text: `Check out ${product.name} on White Rose!`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Product link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
   const imagesList = product.images && product.images.length > 0 
     ? product.images 
     : [product.image_url || ''];
@@ -275,7 +296,7 @@ const ProductDetails = () => {
 
               <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-zinc-500 pt-6 border-t border-white/5">
                 <span>SKU: {product.sku || `WRB-${product.id.substring(0, 8).toUpperCase()}`}</span>
-                <button className="flex items-center space-x-2">
+                <button onClick={handleShare} className="flex items-center space-x-2 hover:text-white transition-colors">
                   <Share2 size={12} />
                   <span>Share Product</span>
                 </button>

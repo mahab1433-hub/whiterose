@@ -19,6 +19,7 @@ const CheckoutContent = () => {
   const supabase = createClient();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState('');
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
   
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode');
@@ -140,7 +141,8 @@ const CheckoutContent = () => {
         description: 'Luxury Beauty Purchase',
         order_id: orderData.id,
         handler: async function (response: any) {
-          toast.success('Payment is successful');
+          setVerifyingPayment(true);
+          toast.success('Payment is successful. Verifying...');
           
           try {
             // Save order details to sessionStorage for retrieval on the verify page
@@ -161,6 +163,7 @@ const CheckoutContent = () => {
               `/checkout/verify?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`
             );
           } catch (err: any) {
+            setVerifyingPayment(false);
             console.error('CRITICAL ORDER CACHING ERROR:', err);
             toast.error('Failed to initialize verification: ' + (err.message || 'Unknown error') + '. Please contact support with Payment ID: ' + response.razorpay_payment_id);
           }
@@ -294,6 +297,15 @@ const CheckoutContent = () => {
         </div>
       </div>
       
+      {/* Verifying Payment Overlay */}
+      {verifyingPayment && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div className="w-16 h-16 border-4 border-white/20 border-t-accent-pink rounded-full animate-spin mb-8"></div>
+          <h2 className="text-2xl font-serif uppercase tracking-widest text-white mb-2">Verifying Payment...</h2>
+          <p className="text-xs text-zinc-400 font-light tracking-widest uppercase">Please do not press back or close the page</p>
+        </div>
+      )}
+
       {/* Success Modal Popup */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
