@@ -243,8 +243,13 @@ const AdminProducts = () => {
       <div className="space-y-8 md:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <h1 className="text-2xl md:text-4xl font-serif uppercase tracking-tight">Products</h1>
-            <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Manage your inventory and product details</p>
+            <h1 className="text-2xl md:text-4xl font-serif uppercase tracking-tight flex items-center gap-3">
+              Products
+              {!loading && (
+                <span className="text-accent-pink text-xl md:text-2xl font-light">({products.length})</span>
+              )}
+            </h1>
+            <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Manage your {products.length} catalog items</p>
           </div>
           <button 
             onClick={handleOpenAddModal}
