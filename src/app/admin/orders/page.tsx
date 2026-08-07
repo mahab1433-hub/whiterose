@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Search, Filter, Download, FileText, Trash2, Edit } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -17,7 +18,10 @@ export default function AdminOrders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/admin/orders');
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = session ? { 'Authorization': `Bearer ${session.access_token}` } : undefined;
+
+      const res = await fetch('/api/admin/orders', { headers });
       if (!res.ok) throw new Error('Failed to fetch orders');
       const data = await res.json();
       setOrders(data || []);
@@ -30,9 +34,14 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const res = await fetch('/api/admin/orders', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
         body: JSON.stringify({ id, status: newStatus })
       });
 
@@ -48,8 +57,12 @@ export default function AdminOrders() {
     if (!window.confirm('Are you sure you want to delete this fake/test order?')) return;
     
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = session ? { 'Authorization': `Bearer ${session.access_token}` } : undefined;
+
       const res = await fetch(`/api/admin/orders?id=${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers
       });
 
       if (!res.ok) throw new Error('Failed to delete order');

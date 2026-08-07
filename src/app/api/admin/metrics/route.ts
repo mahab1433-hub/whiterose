@@ -6,7 +6,11 @@ import { supabaseServer } from '@/lib/supabase-server';
 export async function GET() {
   try {
     const user = await getAuthenticatedUser();
+    console.log('[Admin API] User:', user?.email);
+    console.log('[Admin API] Is Admin?', isUserAdmin(user?.email));
+    
     if (!user || !isUserAdmin(user.email)) {
+      console.log('[Admin API] Unauthorized access attempt by:', user?.email);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

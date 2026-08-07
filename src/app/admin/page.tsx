@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { ShoppingBag, Package, TrendingUp, Users } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 const AdminOverview = () => {
   const [metrics, setMetrics] = useState({
@@ -23,9 +24,12 @@ const AdminOverview = () => {
     try {
       setLoading(true);
       
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = session ? { 'Authorization': `Bearer ${session.access_token}` } : undefined;
+
       const [metricsRes, ordersRes] = await Promise.all([
-        fetch('/api/admin/metrics'),
-        fetch('/api/admin/orders?limit=5')
+        fetch('/api/admin/metrics', { headers }),
+        fetch('/api/admin/orders?limit=5', { headers })
       ]);
 
       if (!metricsRes.ok || !ordersRes.ok) {

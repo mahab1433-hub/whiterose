@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Search, Mail, Phone, Calendar, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -17,7 +18,10 @@ export default function AdminCustomers() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/customers');
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = session ? { 'Authorization': `Bearer ${session.access_token}` } : undefined;
+
+      const res = await fetch('/api/admin/customers', { headers });
       if (!res.ok) throw new Error('Failed to fetch customers');
       const data = await res.json();
       setCustomers(data || []);

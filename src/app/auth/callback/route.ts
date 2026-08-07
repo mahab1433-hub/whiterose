@@ -33,7 +33,12 @@ export async function GET(request: Request) {
         },
       }
     );
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error('[Auth Callback] Code exchange failed:', error);
+    } else {
+      console.log('[Auth Callback] Session created for:', data.user?.email);
+    }
   }
 
   const next = requestUrl.searchParams.get('next') || '/';
