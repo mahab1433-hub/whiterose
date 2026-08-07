@@ -355,17 +355,28 @@ export async function adminGetAllOrders(): Promise<any[]> {
     return [];
   }
 
-  return (orders || []).map(order => ({
-    ...order,
-    shipping_address: typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address,
-    profiles: order.profiles || { name: 'Unknown', email: 'Unknown', phone: 'Unknown' },
-    order_items: (order.order_items || []).map((item: any) => ({
-      quantity: item.quantity,
-      price: item.price,
-      product_id: item.product_id,
-      products: { name: 'Product ' + item.product_id.substring(0, 4) }
-    }))
-  }));
+  return (orders || []).map(order => {
+    let parsedAddress = order.shipping_address;
+    if (typeof order.shipping_address === 'string') {
+      try {
+        parsedAddress = JSON.parse(order.shipping_address);
+      } catch (e) {
+        parsedAddress = {};
+      }
+    }
+    
+    return {
+      ...order,
+      shipping_address: parsedAddress,
+      profiles: order.profiles || { name: 'Unknown', email: 'Unknown', phone: 'Unknown' },
+      order_items: (order.order_items || []).map((item: any) => ({
+        quantity: item.quantity,
+        price: item.price,
+        product_id: item.product_id,
+        products: { name: 'Product ' + item.product_id.substring(0, 4) }
+      }))
+    };
+  });
 }
 
 /**
