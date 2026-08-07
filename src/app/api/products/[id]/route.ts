@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, isUserAdmin, getServerSupabase } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase-server';
+import { revalidatePath } from 'next/cache';
 
 // GET /api/products/[id]
 // Public for Active products. Admin only for Draft products.
@@ -127,6 +128,9 @@ export async function PUT(
       throw error;
     }
 
+    revalidatePath('/');
+    revalidatePath('/shop');
+
     return NextResponse.json(updatedData);
   } catch (error: any) {
     console.error('Product PUT error:', error);
@@ -156,6 +160,9 @@ export async function DELETE(
     if (error) {
       throw error;
     }
+
+    revalidatePath('/');
+    revalidatePath('/shop');
 
     return NextResponse.json({ success: true, message: 'Product Deleted Successfully' });
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, isUserAdmin, getServerSupabase } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase-server';
+import { revalidatePath } from 'next/cache';
 
 // GET /api/products
 // Public: returns active products. Admin: returns all products if admin=true
@@ -124,6 +125,9 @@ export async function POST(request: Request) {
     if (error) {
       throw error;
     }
+
+    revalidatePath('/');
+    revalidatePath('/shop');
 
     return NextResponse.json(insertedData, { status: 201 });
   } catch (error: any) {
