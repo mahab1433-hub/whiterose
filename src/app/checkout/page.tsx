@@ -127,6 +127,12 @@ const CheckoutContent = () => {
         body: JSON.stringify({
           amount: finalTotal,
           receipt: `rcpt_${Math.random().toString(36).substring(7)}`,
+          shippingAddress: { ...formData, shipping_fee: shippingFee },
+          items: displayItems.map(item => ({
+            productId: item.id,
+            quantity: item.quantity,
+            price: item.price
+          }))
         }),
       });
 

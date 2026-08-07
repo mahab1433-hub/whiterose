@@ -73,8 +73,8 @@ export async function POST(req: Request) {
     // 5. Open database session
     const db = await openUserDb(user?.id || null);
 
-    // 6. Check for duplicate payment execution
-    console.log(`[Verify API] Scanning database for duplicate payment ID: ${razorpayPaymentId}...`);
+    // 6. Check for duplicate payment execution or pending order
+    console.log(`[Verify API] Scanning database for existing payment ID: ${razorpayPaymentId}...`);
     const existingOrder = await db.get('SELECT * FROM orders WHERE payment_id = ?', razorpayPaymentId);
     if (existingOrder) {
       console.log(`[Verify API] Order already exists for Payment ID: ${razorpayPaymentId} (Order Reference: ${existingOrder.id}). Preventing duplicate creation.`);
@@ -82,44 +82,57 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, orderId: existingOrder.id });
     }
 
+    const pendingOrder = await db.get('SELECT * FROM orders WHERE payment_id = ?', razorpayOrderId);
+    
+    let orderId = pendingOrder ? pendingOrder.id : randomUUID();
+
     // 7. Insert Order & Order Items inside a secure transaction block
-    const orderId = randomUUID();
-    console.log(`[Verify API] Initiating database transaction for order: ${orderId}...`);
+    const orderIdToUse = orderId; // already defined above
+    console.log(`[Verify API] Initiating database transaction for order: ${orderIdToUse}...`);
     
     await db.run('BEGIN TRANSACTION');
     try {
-      // 1. Insert parent order
-      await db.run(
-        `INSERT INTO orders (id, user_id, total_amount, status, payment_id, payment_status, shipping_address) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          orderId,
-          user?.id || null,
-          totalAmount,
-          'processing',
-          razorpayPaymentId,
-          'paid',
-          JSON.stringify(shippingAddress)
-        ]
-      );
-      console.log('[Verify API] Order metadata saved successfully.');
-
-      // 2. Insert child order items
-      for (const item of items) {
-        const orderItemId = randomUUID();
+      if (pendingOrder) {
+        // Update pending order
         await db.run(
-          `INSERT INTO order_items (id, order_id, product_id, quantity, price) 
-           VALUES (?, ?, ?, ?, ?)`,
+          `UPDATE orders SET status = 'processing', payment_status = 'paid', payment_id = ? WHERE id = ?`,
+          [razorpayPaymentId, orderIdToUse]
+        );
+        console.log('[Verify API] Pending order updated to paid.');
+      } else {
+        // 1. Insert parent order (fallback)
+        await db.run(
+          `INSERT INTO orders (id, user_id, total_amount, status, payment_id, payment_status, shipping_address) 
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
-            orderItemId,
-            orderId,
-            item.productId,
-            item.quantity,
-            item.price
+            orderIdToUse,
+            user?.id || null,
+            totalAmount,
+            'processing',
+            razorpayPaymentId,
+            'paid',
+            JSON.stringify(shippingAddress)
           ]
         );
+        console.log('[Verify API] Order metadata saved successfully.');
+
+        // 2. Insert child order items
+        for (const item of items) {
+          const orderItemId = randomUUID();
+          await db.run(
+            `INSERT INTO order_items (id, order_id, product_id, quantity, price) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+              orderItemId,
+              orderIdToUse,
+              item.productId,
+              item.quantity,
+              item.price
+            ]
+          );
+        }
+        console.log(`[Verify API] Saved ${items.length} order items successfully.`);
       }
-      console.log(`[Verify API] Saved ${items.length} order items successfully.`);
 
       // 3. Clear cart items if checkout belongs to a logged-in user
       if (user?.id) {

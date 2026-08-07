@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { openUserDb } from '@/lib/user-db';
+import { randomUUID } from 'crypto';
 
 export async function POST(req: Request) {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -22,7 +25,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Request Body:', body);
 
-    const { amount, currency = 'INR', receipt } = body;
+    const { amount, currency = 'INR', receipt, items, shippingAddress } = body;
 
     if (!amount || isNaN(Number(amount))) {
       return NextResponse.json({ error: 'Invalid amount', received: amount }, { status: 400 });
@@ -35,6 +38,39 @@ export async function POST(req: Request) {
     };
 
     const order = await razorpay.orders.create(options);
+
+    // Save pending order to handle cases where user completely exits website during payment redirect
+    if (items && shippingAddress) {
+      const user = await getAuthenticatedUser();
+      const db = await openUserDb(user?.id || null);
+      
+      const orderId = randomUUID();
+      await db.run('BEGIN TRANSACTION');
+      try {
+        // Use Razorpay Order ID as temporary payment_id for webhook matching
+        await db.run(
+          `INSERT INTO orders (id, user_id, total_amount, status, payment_id, payment_status, shipping_address) 
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [orderId, user?.id || null, amount, 'pending', order.id, 'pending', JSON.stringify(shippingAddress)]
+        );
+        for (const item of items) {
+          const orderItemId = randomUUID();
+          await db.run(
+            `INSERT INTO order_items (id, order_id, product_id, quantity, price) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [orderItemId, orderId, item.productId, item.quantity, item.price]
+          );
+        }
+        await db.run('COMMIT');
+        console.log(`[API] Created pending order: ${orderId} for Razorpay Order: ${order.id}`);
+      } catch (err) {
+        await db.run('ROLLBACK');
+        console.error('[API] Failed to create pending order:', err);
+      } finally {
+        await db.close();
+      }
+    }
+
     return NextResponse.json(order);
   } catch (error: any) {
     console.error('RAZORPAY_CRITICAL_ERROR:', error);

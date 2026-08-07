@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { openUserDb } from '@/lib/user-db';
 
 export async function POST(req: Request) {
   console.log('[Webhook API] --- Razorpay Webhook Received ---');
@@ -38,12 +39,40 @@ export async function POST(req: Request) {
     if (event.event === 'order.paid' || event.event === 'payment.captured') {
       const payment = event.payload.payment.entity;
       const razorpayOrderId = payment.order_id;
+      const razorpayPaymentId = payment.id;
       
-      // The verify endpoint already creates the order, but you can use this 
-      // webhook to update statuses if the user closed the app before /verify could be called.
-      console.log(`[Webhook API] Payment captured for Razorpay Order: ${razorpayOrderId}`);
+      console.log(`[Webhook API] Payment captured for Razorpay Order: ${razorpayOrderId} / Payment: ${razorpayPaymentId}`);
       
-      // Example: You can use openUserDb() here to update the order status if needed
+      const db = await openUserDb(null);
+      try {
+        // Find the pending order we created before checkout opened. We saved razorpayOrderId in the payment_id field.
+        const pendingOrder = await db.get('SELECT id, status FROM orders WHERE payment_id = ?', razorpayOrderId);
+        
+        if (pendingOrder) {
+          if (pendingOrder.status === 'pending') {
+             await db.run(
+               `UPDATE orders SET status = 'processing', payment_status = 'paid', payment_id = ? WHERE id = ?`,
+               [razorpayPaymentId, pendingOrder.id]
+             );
+             console.log(`[Webhook API] SUCCESS: Updated pending order ${pendingOrder.id} to paid!`);
+          } else {
+             console.log(`[Webhook API] Order ${pendingOrder.id} is already processed (status: ${pendingOrder.status}).`);
+          }
+        } else {
+          // Check if it was already updated by the frontend verify/check-status
+          const existingOrder = await db.get('SELECT id FROM orders WHERE payment_id = ?', razorpayPaymentId);
+          if (existingOrder) {
+             console.log(`[Webhook API] Order ${existingOrder.id} was already updated successfully by the frontend.`);
+          } else {
+             console.error(`[Webhook API] CRITICAL: Could not find any order matching Razorpay Order: ${razorpayOrderId}`);
+          }
+        }
+      } catch (dbErr) {
+        console.error('[Webhook API] Database Error:', dbErr);
+      } finally {
+        await db.close();
+      }
+
     } else if (event.event === 'payment.failed') {
       console.log(`[Webhook API] Payment failed for Razorpay Order: ${event.payload.payment.entity.order_id}`);
     }

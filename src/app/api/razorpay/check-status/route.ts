@@ -55,23 +55,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, orderId: existingOrder.id });
     }
 
-    const orderId = randomUUID();
+    const pendingOrder = await db.get('SELECT * FROM orders WHERE payment_id = ?', razorpayOrderId);
+    const orderIdToUse = pendingOrder ? pendingOrder.id : randomUUID();
     
     await db.run('BEGIN TRANSACTION');
     try {
-      await db.run(
-        `INSERT INTO orders (id, user_id, total_amount, status, payment_id, payment_status, shipping_address) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, user?.id || null, totalAmount, 'processing', razorpayPaymentId, 'paid', JSON.stringify(shippingAddress)]
-      );
-
-      for (const item of items) {
-        const orderItemId = randomUUID();
+      if (pendingOrder) {
         await db.run(
-          `INSERT INTO order_items (id, order_id, product_id, quantity, price) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [orderItemId, orderId, item.productId, item.quantity, item.price]
+          `UPDATE orders SET status = 'processing', payment_status = 'paid', payment_id = ? WHERE id = ?`,
+          [razorpayPaymentId, orderIdToUse]
         );
+        console.log('[Check-Status API] Pending order updated to paid.');
+      } else {
+        await db.run(
+          `INSERT INTO orders (id, user_id, total_amount, status, payment_id, payment_status, shipping_address) 
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [orderIdToUse, user?.id || null, totalAmount, 'processing', razorpayPaymentId, 'paid', JSON.stringify(shippingAddress)]
+        );
+
+        for (const item of items) {
+          const orderItemId = randomUUID();
+          await db.run(
+            `INSERT INTO order_items (id, order_id, product_id, quantity, price) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [orderItemId, orderIdToUse, item.productId, item.quantity, item.price]
+          );
+        }
       }
 
       if (user?.id) {
@@ -103,14 +112,14 @@ export async function POST(req: Request) {
 
         const customerEmail = shippingAddressParsed.email || user?.email || '';
         if (customerEmail) {
-          await sendOrderConfirmationEmail(orderId, customerEmail, totalAmount, emailItems, shippingAddressParsed);
+          await sendOrderConfirmationEmail(orderIdToUse, customerEmail, totalAmount, emailItems, shippingAddressParsed);
         }
-        await sendAdminOrderNotificationEmail(orderId, totalAmount, emailItems, { ...shippingAddressParsed, email: customerEmail });
+        await sendAdminOrderNotificationEmail(orderIdToUse, totalAmount, emailItems, { ...shippingAddressParsed, email: customerEmail });
       } catch (e) {}
     }
 
     await db.close();
-    return NextResponse.json({ success: true, orderId });
+    return NextResponse.json({ success: true, orderId: orderIdToUse });
 
   } catch (error: any) {
     console.error('[Check-Status API] Unexpected error:', error);
