@@ -1,0 +1,44 @@
+product_id,product_name,category,description
+M1,BB Cream,Makeup,BB Cream - Makeup
+M2,Stroke Cream,Makeup,Stroke Cream - Makeup
+M3,Primer,Makeup,Primer - Makeup
+M4,Foundation,Makeup,Foundation - Makeup
+M5,Compact Powder,Makeup,Compact Powder - Makeup
+M6,Eyeliner,Makeup,Eyeliner - Makeup
+M7,Mascara,Makeup,Mascara - Makeup
+M8,Kajal,Makeup,Kajal - Makeup
+M9,Sindoor,Makeup,Sindoor - Makeup
+M10,Eyebrow Pencil,Makeup,Eyebrow Pencil - Makeup
+M11,Mini Makeup Brush Kit,Makeup,Mini Makeup Brush Kit - Makeup
+M12,Keysoul Wipes,Makeup,Keysoul Wipes - Makeup
+M13,Lip Kit,Makeup,"Lip Liner, Lipstick, Lip Balm, Lip Gloss, Lip Oil"
+M14,Eyeshadow Palette,Makeup,Eyeshadow Palette - Makeup
+M15,3-in-1 Shine Palette,Makeup,"Blush, Highlighter, Contour"
+M16,3-in-1 Tint,Makeup,"Eyes, Lip, Blush"
+M17,Concealer,Makeup,High coverage creamy concealer
+M18,Lip Balm,Makeup,Nourishing lip protection
+M19,Lip Balm V2,Makeup,Advanced lip hydration
+S1,Face Wash,Skincare,Face Wash - Skincare
+S2,Toner,Skincare,Toner - Skincare
+S3,Sunscreen,Skincare,Sunscreen - Skincare
+S4,Moisturizer (Oily Skin),Skincare,Moisturizer (Oily Skin) - Skincare
+S5,Moisturizer (Normal/Combination),Skincare,Moisturizer (Normal/Combination) - Skincare
+S6,Moisturizer (Dry Skin),Skincare,Moisturizer (Dry Skin) - Skincare
+S7,Day Serum,Skincare,Day Serum - Skincare
+S8,Night Serum,Skincare,Night Serum - Skincare
+S9,Hair Serum,Skincare,Hair Serum - Skincare
+S10,Serum Kit,Skincare,Day + Night + Hair
+HC1,Hair Revival Kit,Hair Care,Hair Revival Kit - Hair Care
+HC2,Anti-dandruff Shampoo,Hair Care,Anti-dandruff Shampoo - Hair Care
+HC3,Hair Fall Control Shampoo,Hair Care,Hair Fall Control Shampoo - Hair Care
+HC4,Herbal Shampoo,Hair Care,Herbal Shampoo - Hair Care
+HC5,Herbal Oil,Hair Care,Herbal Oil - Hair Care
+HC6,Moringa Shampoo,Hair Care,Moringa Shampoo - Hair Care
+HC7,Moringa Oil,Hair Care,Moringa Oil - Hair Care
+HC8,Moringa Conditioner,Hair Care,Moringa Conditioner - Hair Care
+O2,Moringa Mini Facial Kit,Others,Moringa Mini Facial Kit - Others
+O3,Foot Cream,Others,Foot Cream - Others
+O4,Moringa Scrub,Others,Moringa Scrub - Others
+O5,Moringa Soap,Others,Moringa Soap - Others
+O6,Nysa Sensation Soap,Others,Nysa Sensation Soap - Others
+O7,Perfume,Others,Perfume - Others

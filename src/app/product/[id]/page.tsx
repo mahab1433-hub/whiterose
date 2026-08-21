@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getProductById } from '@/lib/supabase';
+import { getProductById, supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 import { ShoppingBag, Heart, Share2, ArrowLeft, ChevronRight, Star } from 'lucide-react';
+import ProductCard from '@/components/products/ProductCard';
+import { MOCK_PRODUCTS } from '@/lib/mockData';
 import { useCart } from '@/lib/store';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -18,6 +20,9 @@ const ProductDetails = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [recommendationError, setRecommendationError] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'details' | 'ingredients' | 'usage' | 'benefits'>('details');
 
@@ -31,6 +36,51 @@ const ProductDetails = () => {
     };
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      // We need the full product object to map its name to the ML dataset ID
+      if (!id || !product) return;
+      
+      // Find the ML ID (e.g. "M4") from mockData using the product name
+      const mockProduct = MOCK_PRODUCTS.find(p => p.name === product.name);
+      if (!mockProduct) return;
+      
+      setLoadingRecommendations(true);
+      setRecommendationError(false);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/recommend/${mockProduct.id}`);
+        if (!res.ok) throw new Error('Failed to fetch recommendations');
+        
+        const data = await res.json();
+        
+        // Convert the returned ML IDs back to real Supabase products by matching names
+        const productsPromises = data.recommendations.map(async (rec: any) => {
+          const mProd = MOCK_PRODUCTS.find(p => p.id === rec.product_id);
+          if (!mProd) return null;
+          
+          const { data: realProd } = await supabase
+            .from('products')
+            .select('*')
+            .eq('name', mProd.name)
+            .single();
+            
+          return realProd;
+        });
+        
+        const fullProducts = await Promise.all(productsPromises);
+        
+        setRecommendations(fullProducts.filter((p): p is Product => p !== null));
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+        setRecommendationError(true);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+    fetchRecommendations();
+  }, [id, product]);
 
   if (loading) {
     return (
@@ -304,6 +354,29 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Recommendations Section */}
+      <div className="container mx-auto px-6 mt-24 pt-16 border-t border-white/5">
+        <h2 className="text-2xl font-serif uppercase tracking-wider mb-8 text-center text-white">
+          <span className="text-accent-pink mr-2">✨</span> Recommended for You
+        </h2>
+        
+        {loadingRecommendations ? (
+          <div className="flex items-center justify-center py-12 opacity-50">
+            <p className="text-[10px] uppercase tracking-widest animate-pulse">Finding products you may like...</p>
+          </div>
+        ) : recommendationError || recommendations.length === 0 ? (
+          <div className="hidden">
+            {/* Fallback hidden state */}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:gap-6">
+            {recommendations.map(rec => (
+              <ProductCard key={rec.id} product={rec} />
+            ))}
+          </div>
+        )}
       </div>
       
       {/* Sticky Mobile Bottom Bar */}
